@@ -56,6 +56,7 @@
 #include "explanation-log-window.hpp"
 #include "find-dialog.hpp"
 #include "submodules/AERA/AERA/settings.h"
+#include "submodules/AERA/AERA/driver.hpp"
 
 #include <QApplication>
 #include <QCoreApplication>
@@ -96,6 +97,9 @@ int main(int argv, char *args[])
   // Enables using the settings from anywhere
   QCoreApplication::setOrganizationName("IIIM");
   QCoreApplication::setApplicationName("AERA_Visualizer");
+
+  // Run the included AERA install with no args
+  startAERA();
 
   // Configure QSettings to use .ini files to store settings
   QSettings::setDefaultFormat(QSettings::IniFormat);
