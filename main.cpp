@@ -76,6 +76,7 @@ To Implement
 - Clicking "Focus On", etc. buttons should open relevant view
 - Dockable widgets need padding for mainwindow borders
 - Docked tabs should be at the top of the view
+- Player control panel should probably not be dockable and should be fixed to the bottom of the window
 
 Issues
 - 
