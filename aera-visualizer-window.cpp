@@ -180,7 +180,6 @@ AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
   itemBorderHighlightPen_(Qt::blue, 3)
 {
   createActions();
-  createMenus();
 
   // Set mainScene_ to null so that setPlayTime will not try to auto-scroll it.
   mainScene_ = 0;
@@ -193,6 +192,12 @@ AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
   auto modelsSceneView = new QGraphicsView(modelsScene_, this);
   modelsSceneView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   modelsSceneView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  modelsSceneView->setMinimumWidth(200);
+  
+  modelsView_ = new QDockWidget("Models View", this);
+  modelsView_->setWidget(modelsSceneView);
+  addDockWidget(Qt::LeftDockWidgetArea, modelsView_);
+  
 
   mainScene_ = new AeraVisualizerScene(replicodeObjects_, this, true,
     [=]() { selectedScene_ = mainScene_; });
@@ -200,18 +205,14 @@ AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
   auto mainSceneView = new MyQGraphicsView(mainScene_, this);
   mainSceneView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   mainSceneView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  mainSceneView->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding));
   // Set a default selected scene.
   selectedScene_ = mainScene_;
 
-  auto splitter = new QSplitter(this);
-  splitter->addWidget(modelsSceneView);
-  splitter->addWidget(mainSceneView);
-  // The splitter sizes are proportional.
-  splitter->setSizes(QList<int>() << 100 << 750);
+  createMenus();
 
   auto centralLayout = new QVBoxLayout();
-  // A stretch factor of 1, vs. the playerControlPanel factor of 0, makes the splitter maximize its space.
-  centralLayout->addWidget(splitter, 1);
+  centralLayout->addWidget(mainSceneView);
   centralLayout->addWidget(getPlayerControlPanel());
 
   auto centralWidget = new QWidget();
@@ -2033,6 +2034,7 @@ void AeraVisualizerWindow::createMenus()
   viewMenu->addSeparator();
   if (explanationLogView_)
     viewMenu->addAction(explanationLogView_->toggleViewAction());
+  viewMenu->addAction(modelsView_->toggleViewAction());
 
   QMenu* findMenu = menuBar()->addMenu(tr("Fin&d"));
   findMenu->addAction(findAction_);

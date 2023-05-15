@@ -177,6 +177,10 @@ int main(int argv, char *args[])
   mainWindow.setExplanationLogView(explanationLogView);
   mainWindow.addDockWidget(Qt::RightDockWidgetArea, explanationLogView);
 
+  // Configure docking settings
+  mainWindow.setDockNestingEnabled(true);
+  mainWindow.setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
+
   // Set up the Find dialog but don't display it
   auto findDialog = new FindDialog(&mainWindow, replicodeObjects);
   mainWindow.setFindWindow(findDialog);

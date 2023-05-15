@@ -63,6 +63,7 @@
 
 #include <vector>
 #include <QIcon>
+#include <QDockWidget>
 
 class AeraVisualizerScene;
 
@@ -299,6 +300,8 @@ private:
   AeraVisualizerScene* modelsScene_;
   AeraVisualizerScene* mainScene_;
   AeraVisualizerScene* selectedScene_;
+
+  QDockWidget* modelsView_;
 
   QAction* exitAction_;
   QAction* zoomInAction_;

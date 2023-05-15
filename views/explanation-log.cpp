@@ -76,6 +76,8 @@ ExplanationLogView::ExplanationLogView(AeraVisualizerWindow* mainWindow, Replico
   textBrowser_ = new TextBrowser(this);
   setWidget(textBrowser_);
   connect(textBrowser_, SIGNAL(anchorClicked(const QUrl&)), this, SLOT(textBrowserAnchorClicked(const QUrl&)));
+
+  setMinimumWidth(200);
 }
 
 void ExplanationLogView::textBrowserAnchorClicked(const QUrl& url)
