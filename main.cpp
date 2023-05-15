@@ -70,6 +70,19 @@ using namespace std;
 using namespace std::chrono;
 using namespace aera_visualizer;
 
+/* To Do
+To Implement
+- Min. window sizes for views should be based on screen res
+- Clicking "Focus On", etc. buttons should open relevant view
+
+Issues
+- 
+
+Crashes
+- 
+
+*/
+
 int main(int argv, char *args[])
 {
   Q_INIT_RESOURCE(aera_visualizer);
