@@ -113,6 +113,7 @@ public:
   void setExplanationLogView(ExplanationLogView* explanationLogView)
   {
     explanationLogView_ = explanationLogView;
+    createMenus(); // Redo the menu to add the explanation log in the show/hide action
   }
 
   ExplanationLogView* getExplanationLogView() { return explanationLogView_;  }

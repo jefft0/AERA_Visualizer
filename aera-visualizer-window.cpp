@@ -83,6 +83,7 @@
 
 #include "aera-visualizer-window.hpp"
 #include "find-dialog.hpp"
+#include "views/explanation-log.hpp"
 
 #include <QtWidgets>
 #include <QProgressDialog>
@@ -2018,6 +2019,9 @@ void AeraVisualizerWindow::createActions()
 
 void AeraVisualizerWindow::createMenus()
 {
+  // Reset the menu so we can add more actions
+  menuBar()->clear();
+
   QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(exitAction_);
 
@@ -2026,6 +2030,9 @@ void AeraVisualizerWindow::createMenus()
   viewMenu->addAction(zoomInAction_);
   viewMenu->addAction(zoomOutAction_);
   viewMenu->addAction(findAction_);
+  viewMenu->addSeparator();
+  if (explanationLogView_)
+    viewMenu->addAction(explanationLogView_->toggleViewAction());
 
   QMenu* findMenu = menuBar()->addMenu(tr("Fin&d"));
   findMenu->addAction(findAction_);
