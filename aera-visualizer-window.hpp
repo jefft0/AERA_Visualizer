@@ -302,6 +302,7 @@ private:
   AeraVisualizerScene* selectedScene_;
 
   QDockWidget* modelsView_;
+  QDockWidget* playerControlView_;
 
   QAction* exitAction_;
   QAction* zoomInAction_;

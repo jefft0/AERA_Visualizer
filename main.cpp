@@ -74,6 +74,8 @@ using namespace aera_visualizer;
 To Implement
 - Min. window sizes for views should be based on screen res
 - Clicking "Focus On", etc. buttons should open relevant view
+- Dockable widgets need padding for mainwindow borders
+- Docked tabs should be at the top of the view
 
 Issues
 - 

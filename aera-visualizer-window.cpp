@@ -194,11 +194,12 @@ AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
   modelsSceneView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   modelsSceneView->setMinimumWidth(200);
   
+  // Make the models view dockable
   modelsView_ = new QDockWidget("Models View", this);
   modelsView_->setWidget(modelsSceneView);
   addDockWidget(Qt::LeftDockWidgetArea, modelsView_);
   
-
+  // The timeline view is the central widget
   mainScene_ = new AeraVisualizerScene(replicodeObjects_, this, true,
     [=]() { selectedScene_ = mainScene_; });
   // Use a MyQGraphicsView so that we can track movements to the scene view.
@@ -208,14 +209,17 @@ AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
   mainSceneView->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding));
   // Set a default selected scene.
   selectedScene_ = mainScene_;
+  
+  // Make the timeline dockable
+  playerControlView_ = new QDockWidget("Player Control Panel", this);
+  playerControlView_->setWidget(getPlayerControlPanel());
+  addDockWidget(Qt::BottomDockWidgetArea, playerControlView_);
 
   createMenus();
 
+  auto centralWidget = new QWidget();
   auto centralLayout = new QVBoxLayout();
   centralLayout->addWidget(mainSceneView);
-  centralLayout->addWidget(getPlayerControlPanel());
-
-  auto centralWidget = new QWidget();
   centralWidget->setLayout(centralLayout);
   setCentralWidget(centralWidget);
 
@@ -2035,6 +2039,7 @@ void AeraVisualizerWindow::createMenus()
   if (explanationLogView_)
     viewMenu->addAction(explanationLogView_->toggleViewAction());
   viewMenu->addAction(modelsView_->toggleViewAction());
+  viewMenu->addAction(playerControlView_->toggleViewAction());
 
   QMenu* findMenu = menuBar()->addMenu(tr("Fin&d"));
   findMenu->addAction(findAction_);
