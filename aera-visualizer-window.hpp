@@ -76,7 +76,7 @@ class QProgressDialog;
 
 namespace aera_visualizer {
 
-class ExplanationLogWindow;
+class ExplanationLogView;
 class FindDialog;
 
 /**
@@ -110,12 +110,12 @@ public:
    */
   void addStartupItems();
 
-  void setExplanationLogWindow(ExplanationLogWindow* explanationLogWindow)
+  void setExplanationLogView(ExplanationLogView* explanationLogView)
   {
-    explanationLogWindow_ = explanationLogWindow;
+    explanationLogView_ = explanationLogView;
   }
 
-  ExplanationLogWindow* getExplanationLogWindow() { return explanationLogWindow_;  }
+  ExplanationLogView* getExplanationLogView() { return explanationLogView_;  }
 
   void setFindWindow(FindDialog* zoomToWindow)
   {
@@ -231,7 +231,7 @@ protected:
    */
   core::Timestamp unstepEvent(core::Timestamp minimumTime, bool& foundGraphicsItem);
 
-  ExplanationLogWindow* explanationLogWindow_;
+  ExplanationLogView* explanationLogView_;
   FindDialog* findDialog_;
 
 private slots:

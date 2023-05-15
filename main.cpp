@@ -53,7 +53,7 @@
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 #include "aera-visualizer-window.hpp"
-#include "explanation-log-window.hpp"
+#include "views/explanation-log.hpp"
 #include "find-dialog.hpp"
 #include "submodules/AERA/AERA/settings.h"
 
@@ -170,14 +170,12 @@ int main(int argv, char *args[])
   const int top = titleBarHeight;
   const int width = availableWidth - explanationLogWindowWidth;
   const int height = availableHeight - titleBarHeight;
-  mainWindow.setGeometry(left, top, width, height);
-
-  auto explanationLogWindow = new ExplanationLogWindow(&mainWindow, replicodeObjects);
-  mainWindow.setExplanationLogWindow(explanationLogWindow);
-  // Disable the close button for the child window.
-  explanationLogWindow->setWindowFlag(Qt::WindowCloseButtonHint, false);
-  explanationLogWindow->setGeometry(left + width, top, explanationLogWindowWidth, height);
-  explanationLogWindow->show();
+  mainWindow.setGeometry(left, top, screen->availableSize().width(), height);
+  
+  // Open the usual views
+  auto explanationLogView = new ExplanationLogView(&mainWindow, replicodeObjects);
+  mainWindow.setExplanationLogView(explanationLogView);
+  mainWindow.addDockWidget(Qt::RightDockWidgetArea, explanationLogView);
 
   // Set up the Find dialog but don't display it
   auto findDialog = new FindDialog(&mainWindow, replicodeObjects);

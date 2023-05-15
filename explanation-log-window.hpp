@@ -55,6 +55,7 @@
 #define EXPLANATION_LOG_WINDOW_HPP
 
 #include <QTextBrowser>
+#include <QDockWidget>
 #include "aera-visualizer-window.hpp"
 
 namespace aera_visualizer {
@@ -62,7 +63,7 @@ namespace aera_visualizer {
  * ExplanationLogWindow extends AeraVisualizerWindowBase to present the player
  * control panel and the explanation log.
  */
-class ExplanationLogWindow : public AeraVisualizerWindowBase
+class ExplanationLogWindow : public QDockWidget
 {
   Q_OBJECT
 
@@ -103,6 +104,9 @@ private:
     void mouseMoveEvent(QMouseEvent* event) override;
   };
   friend TextBrowser;
+
+  AeraVisualizerWindow* mainWindow_;
+  ReplicodeObjects replicodeObjects_;
 
   // TODO: We should be able to use textBrowser_ to append HTML.
   QString html_;

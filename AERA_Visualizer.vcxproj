@@ -214,7 +214,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aera-checkbox.cpp" />
-    <ClCompile Include="explanation-log-window.cpp" />
     <ClCompile Include="aera-visualizer-window-base.cpp" />
     <ClCompile Include="graphics-items\aba-sentence-item.cpp" />
     <ClCompile Include="graphics-items\aera-graphics-item-group.cpp" />
@@ -354,11 +353,16 @@
     <ClCompile Include="submodules\AERA\submodules\CoreLibrary\CoreLibrary\xml_parser.cpp" />
     <ClCompile Include="submodules\AERA\usr_operators\auto_focus_callback.cpp" />
     <ClCompile Include="find-dialog.cpp" />
+    <ClCompile Include="views\explanation-log.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="aera_visualizer.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="views\explanation-log.hpp">
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING;WIN64;_DEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;EXECUTIVE_EXPORTS;CORELIBRARY_EXPORTS;WITH_DETAIL_OID;VISUALIZER_REMOTE;%(PreprocessorDefinitions)</Define>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;EXECUTIVE_EXPORTS;CORELIBRARY_EXPORTS;WITH_DETAIL_OID;VISUALIZER_REMOTE;%(PreprocessorDefinitions)</Define>
+    </QtMoc>
     <QtMoc Include="find-dialog.hpp">
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING;WIN64;_DEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;EXECUTIVE_EXPORTS;CORELIBRARY_EXPORTS;WITH_DETAIL_OID;%(PreprocessorDefinitions)</Define>
       <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;EXECUTIVE_EXPORTS;CORELIBRARY_EXPORTS;WITH_DETAIL_OID;%(PreprocessorDefinitions)</Define>
@@ -465,7 +469,6 @@
     <ClInclude Include="submodules\AERA\submodules\CoreLibrary\CoreLibrary\utils.h" />
     <ClInclude Include="submodules\AERA\submodules\CoreLibrary\CoreLibrary\xml_parser.h" />
     <ClInclude Include="submodules\AERA\usr_operators\auto_focus_callback.h" />
-    <QtMoc Include="explanation-log-window.hpp" />
     <QtMoc Include="aera-visualizer-window-base.hpp" />
     <QtMoc Include="aera-visualizer-window.hpp" />
   </ItemGroup>

@@ -168,7 +168,7 @@ const QString AeraVisualizerWindow::SettingsKeyRequirementsVisible = "requiremen
 
 AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
 : AeraVisualizerWindowBase(0, replicodeObjects),
-  iNextEvent_(0), explanationLogWindow_(0),
+  iNextEvent_(0), explanationLogView_(0),
   essencePropertyObject_(replicodeObjects_.getObject("essence")),
   hoverHighlightItem_(0),
   phasedOutModelColor_(255, 192, 192),

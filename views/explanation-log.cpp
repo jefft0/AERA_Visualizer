@@ -53,11 +53,11 @@
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 #include <QtWidgets>
-#include "submodules/AERA/r_exec/opcodes.h"
-#include "graphics-items/program-reduction-item.hpp"
-#include "graphics-items/io-device-inject-eject-item.hpp"
-#include "aera-visualizer-window.hpp"
-#include "explanation-log-window.hpp"
+#include "explanation-log.hpp"
+#include "../submodules/AERA/r_exec/opcodes.h"
+#include "../graphics-items/program-reduction-item.hpp"
+#include "../graphics-items/io-device-inject-eject-item.hpp"
+#include "../aera-visualizer-window.hpp"
 
 using namespace std;
 using namespace r_code;
@@ -65,24 +65,20 @@ using namespace r_exec;
 
 namespace aera_visualizer {
 
-ExplanationLogWindow::ExplanationLogWindow(AeraVisualizerWindow* mainWindow, ReplicodeObjects& replicodeObjects)
-  : AeraVisualizerWindowBase(mainWindow, replicodeObjects)
+ExplanationLogView::ExplanationLogView(AeraVisualizerWindow* mainWindow, ReplicodeObjects& replicodeObjects)
+  : QDockWidget("Explanation Log", mainWindow)
 {
-  auto centralLayout = new QVBoxLayout();
+  // Save these
+  mainWindow_ = mainWindow;
+  replicodeObjects_ = replicodeObjects;
+
+  // Set up the text browser widget
   textBrowser_ = new TextBrowser(this);
+  setWidget(textBrowser_);
   connect(textBrowser_, SIGNAL(anchorClicked(const QUrl&)), this, SLOT(textBrowserAnchorClicked(const QUrl&)));
-  centralLayout->addWidget(textBrowser_);
-  centralLayout->addWidget(getPlayerControlPanel());
-
-  QWidget* centralWidget = new QWidget();
-  centralWidget->setLayout(centralLayout);
-  setCentralWidget(centralWidget);
-
-  setWindowTitle(tr("Explanation Log"));
-  setUnifiedTitleAndToolBarOnMac(true);
 }
 
-void ExplanationLogWindow::textBrowserAnchorClicked(const QUrl& url)
+void ExplanationLogView::textBrowserAnchorClicked(const QUrl& url)
 {
   if (url.url().startsWith("#requirement_prediction-")) {
     // There is no item for a requirement prediction, so show a menu for a "What Is" explanation.
@@ -166,7 +162,7 @@ void ExplanationLogWindow::textBrowserAnchorClicked(const QUrl& url)
   }
 }
 
-void ExplanationLogWindow::TextBrowser::mouseMoveEvent(QMouseEvent* event)
+void ExplanationLogView::TextBrowser::mouseMoveEvent(QMouseEvent* event)
 {
   parent_->mainWindow_->textItemHoverMoveEvent(document(), event->pos());
 

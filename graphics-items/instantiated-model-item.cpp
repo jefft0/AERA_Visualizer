@@ -56,7 +56,7 @@
 #include "aera-visualizer-window.hpp"
 #include "instantiated-model-item.hpp"
 #include <QMenu>
-#include "explanation-log-window.hpp"
+#include "views/explanation-log.hpp"
 #include "aera-visualizer-scene.hpp"
 
 using namespace std;
@@ -136,7 +136,7 @@ void ImdlItem::textItemLinkActivated(const QString& link)
     menu->addAction("Focus on This", [=]() { parent_->focusOnItem(this); });
     menu->addAction("Center on This", [=]() { parent_->centerOnItem(this); });
     menu->addAction("What Made This?", [=]() {     
-      parent_->getParent()->getExplanationLogWindow()->appendHtml(explanation_);
+      parent_->getParent()->getExplanationLogView()->appendHtml(explanation_);
     });
     menu->exec(QCursor::pos() - QPoint(10, 10));
     delete menu;

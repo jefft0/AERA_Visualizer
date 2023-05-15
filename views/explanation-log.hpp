@@ -5,7 +5,6 @@
 //_/_/ Copyright (c) 2018-2023 Jeff Thompson
 //_/_/ Copyright (c) 2018-2023 Kristinn R. Thorisson
 //_/_/ Copyright (c) 2018-2023 Icelandic Institute for Intelligent Machines
-//_/_/ Copyright (c) 2021 Karl Asgeir Geirsson
 //_/_/ http://www.iiim.is
 //_/_/
 //_/_/ --- Open-Source BSD License, with CADIA Clause v 1.0 ---
@@ -52,47 +51,68 @@
 //_/_/ 
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-#include <regex>
-#include <QMenu>
-#include <QRegularExpression>
-#include "../views/explanation-log.hpp"
-#include "../aera-visualizer-window.hpp"
-#include "../submodules/AERA/r_exec/factory.h"
-#include "aera-visualizer-scene.hpp"
-#include "instantiated-composite-state-item.hpp"
-#include "composite-state-prediction-item.hpp"
+#ifndef EXPLANATION_LOG_HPP
+#define EXPLANATION_LOG_HPP
 
-using namespace std;
-using namespace core;
-using namespace r_code;
-using namespace r_exec;
+#include <QTextBrowser>
+#include <QDockWidget>
+#include "../aera-visualizer-window.hpp"
 
 namespace aera_visualizer {
-
-CompositeStatePredictionItem::CompositeStatePredictionItem(
-  CompositeStateSimulatedPredictionReduction* compositeStateReduction, 
-  ReplicodeObjects& replicodeObjects, AeraVisualizerScene* parent)
-: ExpandableGoalOrPredItem(compositeStateReduction, replicodeObjects,
-    "Comp. State " + makeHtmlLink(compositeStateReduction->compositeState_, replicodeObjects) + " " + RightDoubleArrowHtml,
-    parent),
-  compositeStateReduction_(compositeStateReduction)
+/**
+ * ExplanationLogView extends AeraVisualizerWindowBase to present the player
+ * control panel and the explanation log.
+ */
+class ExplanationLogView : public QDockWidget
 {
-}
+  Q_OBJECT
 
-void CompositeStatePredictionItem::textItemLinkActivated(const QString& link)
-{
-  if (link == "#this") {
-    auto menu = new QMenu();
-    menu->addAction("Zoom to This", [=]() { parent_->zoomToItem(this); });
-    menu->addAction("Focus on This", [=]() { parent_->focusOnItem(this); });
-    menu->addAction("Center on This", [=]() { parent_->centerOnItem(this); });
+public:
+  /**
+   * Create an ExplanationLogView.
+   * \param parent The main parent window for this window.
+   * \param replicodeObjects The ReplicodeObjects used to find objects.
+   */
+  ExplanationLogView(AeraVisualizerWindow* mainWindow, ReplicodeObjects& replicodeObjects);
 
-    menu->exec(QCursor::pos() - QPoint(10, 10));
-    delete menu;
+  void appendHtml(const QString& html)
+  {
+    // TODO: Does QTextBrowser have an actual append operation?
+    html_ += html;
+    textBrowser_->setText(html_);
   }
-  else
-    // For #expand, #detail_oid- and others, defer to the base class.
-    ExpandableGoalOrPredItem::textItemLinkActivated(link);
-}
+
+  void appendHtml(const std::string& html) { appendHtml(QString(html.c_str())); }
+
+private slots:
+  void textBrowserAnchorClicked(const QUrl& url);
+
+private:
+  /**
+   * ExplanationLogView::TextBrowser extends QTextBrowser so that we can override its
+   * mouseMoveEvent.
+   */
+  class TextBrowser : public QTextBrowser {
+  public:
+    TextBrowser(ExplanationLogView* parent)
+      : QTextBrowser(parent), parent_(parent)
+    {}
+
+    ExplanationLogView* parent_;
+
+  protected:
+    void mouseMoveEvent(QMouseEvent* event) override;
+  };
+  friend TextBrowser;
+
+  AeraVisualizerWindow* mainWindow_;
+  ReplicodeObjects replicodeObjects_;
+
+  // TODO: We should be able to use textBrowser_ to append HTML.
+  QString html_;
+  TextBrowser* textBrowser_;
+};
 
 }
+
+#endif

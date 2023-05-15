@@ -176,7 +176,6 @@
     <ClCompile Include="submodules\AERA\usr_operators\auto_focus_callback.cpp">
       <Filter>usr_operators</Filter>
     </ClCompile>
-    <ClCompile Include="explanation-log-window.cpp" />
     <ClCompile Include="graphics-items\aera-graphics-item.cpp">
       <Filter>graphics-items</Filter>
     </ClCompile>
@@ -298,6 +297,9 @@
     </ClCompile>
     <ClCompile Include="submodules\AERA\AERA\IODevices\video_screen\video_screen_io_device.cpp">
       <Filter>AERA\video_screen</Filter>
+    </ClCompile>
+    <ClCompile Include="views\explanation-log.cpp">
+      <Filter>views</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -668,13 +670,18 @@
     <Filter Include="AERA\video_screen">
       <UniqueIdentifier>{f6c7d77b-50fa-4ec4-b066-14ac5943103c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="views">
+      <UniqueIdentifier>{446a57c5-a999-4b4f-8e0d-2990451d43d0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="aera-visualizer-window.hpp" />
     <QtMoc Include="aera-visualizer-window-base.hpp" />
-    <QtMoc Include="explanation-log-window.hpp" />
     <QtMoc Include="aera-checkbox.h" />
     <QtMoc Include="find-dialog.hpp" />
+    <QtMoc Include="views\explanation-log.hpp">
+      <Filter>views</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <None Include="submodules\AERA\r_exec\r_exec.vcxproj">

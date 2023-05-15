@@ -73,7 +73,7 @@ namespace aera_visualizer {
 class AeraGraphicsItem;
 class AeraGraphicsItemGroup;
 class AeraVisualizerWindow;
-class ExplanationLogWindow;
+class ExplanationLogView;
 
 class AeraVisualizerScene : public QGraphicsScene
 {
