@@ -75,6 +75,7 @@ To Implement
 - Clicking "Focus On", etc. buttons should open relevant view
 - Dockable widgets need padding for mainwindow borders
 - Docked tabs should be at the top of the view
+- Reorganize references to semantics view's modelsScene_, it should be more self-contained
 
 Issues
 - Main and model scene widths need to be more flexible
@@ -178,15 +179,6 @@ int main(int argv, char *args[])
 
   mainWindow.setWindowTitle(QString("AERA Visualizer - ") + QFileInfo(settings.source_file_name_.c_str()).fileName());
   mainWindow.setWindowState(Qt::WindowMaximized);
-  
-  // Open the usual views
-  auto explanationLogView = new ExplanationLogView(&mainWindow, replicodeObjects);
-  mainWindow.setExplanationLogView(explanationLogView);
-  mainWindow.addDockWidget(Qt::RightDockWidgetArea, explanationLogView);
-
-  // Configure docking settings
-  mainWindow.setDockNestingEnabled(true);
-  mainWindow.setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
 
   // Set up the Find dialog but don't display it
   auto findDialog = new FindDialog(&mainWindow, replicodeObjects);

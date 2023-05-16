@@ -84,6 +84,7 @@
 #include "aera-visualizer-window.hpp"
 #include "find-dialog.hpp"
 #include "views/explanation-log.hpp"
+#include "views/semantics.hpp"
 
 #include <QtWidgets>
 #include <QProgressDialog>
@@ -188,8 +189,7 @@ AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
   createToolbars();  
   
   // The timeline view is the central widget
-  mainScene_ = new AeraVisualizerScene(replicodeObjects_, this, true,
-    [=]() { selectedScene_ = mainScene_; });
+  mainScene_ = new AeraVisualizerScene(replicodeObjects_, this, true);
   // Use a MyQGraphicsView so that we can track movements to the scene view.
   auto mainSceneView = new MyQGraphicsView(mainScene_, this);
   mainSceneView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -197,33 +197,14 @@ AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
   mainSceneView->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred));
   // Set a default selected scene.
   selectedScene_ = mainScene_;
-
-  // Set up the models scene
-  modelsScene_ = new AeraVisualizerScene(replicodeObjects_, this, false,
-    [=]() { selectedScene_ = modelsScene_; });
-  auto modelsSceneView = new QGraphicsView(modelsScene_, this);
-  modelsSceneView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  modelsSceneView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  modelsSceneView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
-
-  // Make the models view dockable
-  modelsView_ = new QDockWidget("Models View", this);
-  modelsView_->setWidget(modelsSceneView);
-  modelsView_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::TopDockWidgetArea);
-  addDockWidget(Qt::LeftDockWidgetArea, modelsView_);
   
-  // Make the timeline a fixed dock widget so it's always at the bottom of the window
-  playerControlView_ = new QDockWidget("Player Control Panel", this);
-  playerControlView_->setWidget(getPlayerControlPanel());
-  playerControlView_->setFeatures(QDockWidget::NoDockWidgetFeatures);
-  playerControlView_->setTitleBarWidget(new QWidget());
-  addDockWidget(Qt::BottomDockWidgetArea, playerControlView_);
-
+  createDockWidgets();
   createMenus();
 
   auto centralWidget = new QWidget();
   auto centralLayout = new QVBoxLayout();
   centralLayout->addWidget(mainSceneView);
+  centralLayout->addWidget(timelineControls_);
   centralWidget->setLayout(centralLayout);
   setCentralWidget(centralWidget);
 
@@ -829,12 +810,12 @@ void AeraVisualizerWindow::addStartupItems()
 
     if (event->eventType_ == NewModelEvent::EVENT_TYPE)
       // TODO: Add arrows.
-      modelsScene_->addAeraGraphicsItem(
-        new ModelItem((NewModelEvent*)event, replicodeObjects_, modelsScene_));
+      semanticsView_->getModelsScene()->addAeraGraphicsItem(
+        new ModelItem((NewModelEvent*)event, replicodeObjects_, semanticsView_->getModelsScene()));
     else if (event->eventType_ == NewCompositeStateEvent::EVENT_TYPE)
       // TODO: Add arrows.
-      modelsScene_->addAeraGraphicsItem(
-        new CompositeStateItem((NewCompositeStateEvent*)event, replicodeObjects_, modelsScene_));
+      semanticsView_->getModelsScene()->addAeraGraphicsItem(
+        new CompositeStateItem((NewCompositeStateEvent*)event, replicodeObjects_, semanticsView_->getModelsScene()));
   }
 }
 
@@ -852,10 +833,10 @@ AeraGraphicsItem* AeraVisualizerWindow::getAeraGraphicsItem(Code* object, AeraVi
     // Initialize to default NULL.
     *scene = 0;
 
-  auto item = modelsScene_->getAeraGraphicsItem(object);
+  auto item = semanticsView_->getModelsScene()->getAeraGraphicsItem(object);
   if (item) {
     if (scene)
-      *scene = modelsScene_;
+      *scene = semanticsView_->getModelsScene();
     return item;
   }
 
@@ -1078,7 +1059,7 @@ Timestamp AeraVisualizerWindow::stepEvent(Timestamp maximumTime)
     AeraVisualizerScene* scene;
     if (event->eventType_ == NewModelEvent::EVENT_TYPE ||
       event->eventType_ == NewCompositeStateEvent::EVENT_TYPE)
-      scene = modelsScene_;
+      scene = semanticsView_->getModelsScene();
     else
       scene = mainScene_;
 
@@ -1452,7 +1433,7 @@ Timestamp AeraVisualizerWindow::stepEvent(Timestamp maximumTime)
     setSuccessRateEvent->object_->code(MDL_CNT) = Atom::Float(setSuccessRateEvent->evidenceCount_);
     setSuccessRateEvent->object_->code(MDL_SR) = Atom::Float(setSuccessRateEvent->successRate_);
 
-    auto modelItem = dynamic_cast<ModelItem*>(modelsScene_->getAeraGraphicsItem(setSuccessRateEvent->object_));
+    auto modelItem = dynamic_cast<ModelItem*>(semanticsView_->getModelsScene()->getAeraGraphicsItem(setSuccessRateEvent->object_));
     if (modelItem) {
       modelItem->updateFromModel();
       if (setSuccessRateEvent->evidenceCount_ != setSuccessRateEvent->oldEvidenceCount_ &&
@@ -1467,7 +1448,7 @@ Timestamp AeraVisualizerWindow::stepEvent(Timestamp maximumTime)
         modelItem->evidenceCountFlashCountdown_ = AeraVisualizerScene::FLASH_COUNT;
         modelItem->successRateFlashCountdown_ = AeraVisualizerScene::FLASH_COUNT;
       }
-      modelsScene_->establishFlashTimer();
+      semanticsView_->getModelsScene()->establishFlashTimer();
     }
   }
   else if (event->eventType_ == SetModelStrengthEvent::EVENT_TYPE) {
@@ -1479,27 +1460,27 @@ Timestamp AeraVisualizerWindow::stepEvent(Timestamp maximumTime)
     // Update the model.
     setStrengthEvent->object_->code(MDL_STRENGTH) = Atom::Float(setStrengthEvent->strength_);
 
-    auto modelItem = dynamic_cast<ModelItem*>(modelsScene_->getAeraGraphicsItem(setStrengthEvent->object_));
+    auto modelItem = dynamic_cast<ModelItem*>(semanticsView_->getModelsScene()->getAeraGraphicsItem(setStrengthEvent->object_));
     if (modelItem) {
       modelItem->updateFromModel();
       modelItem->strengthFlashCountdown_ = AeraVisualizerScene::FLASH_COUNT;
-      modelsScene_->establishFlashTimer();
+      semanticsView_->getModelsScene()->establishFlashTimer();
     }
   }
   else if (event->eventType_ == PhaseInModelEvent::EVENT_TYPE) {
-    auto modelItem = dynamic_cast<ModelItem*>(modelsScene_->getAeraGraphicsItem(event->object_));
+    auto modelItem = dynamic_cast<ModelItem*>(semanticsView_->getModelsScene()->getAeraGraphicsItem(event->object_));
     if (modelItem)
       // Set the background color.
       modelItem->setBrush(Qt::white);
   }
   else if (event->eventType_ == PhaseOutModelEvent::EVENT_TYPE) {
-    auto modelItem = dynamic_cast<ModelItem*>(modelsScene_->getAeraGraphicsItem(event->object_));
+    auto modelItem = dynamic_cast<ModelItem*>(semanticsView_->getModelsScene()->getAeraGraphicsItem(event->object_));
     if (modelItem)
       // Set the background color.
       modelItem->setBrush(phasedOutModelColor_);
   }
   else if (event->eventType_ == DeleteModelEvent::EVENT_TYPE) {
-    auto modelItem = dynamic_cast<ModelItem*>(modelsScene_->getAeraGraphicsItem(event->object_));
+    auto modelItem = dynamic_cast<ModelItem*>(semanticsView_->getModelsScene()->getAeraGraphicsItem(event->object_));
     if (modelItem)
       // Set the background color.
       modelItem->setBrush(Qt::gray);
@@ -1575,7 +1556,7 @@ Timestamp AeraVisualizerWindow::unstepEvent(Timestamp minimumTime, bool& foundGr
     AeraVisualizerScene* scene;
     if (event->eventType_ == NewModelEvent::EVENT_TYPE ||
         event->eventType_ == NewCompositeStateEvent::EVENT_TYPE)
-      scene = modelsScene_;
+      scene = semanticsView_->getModelsScene();
     else
       scene = mainScene_;
 
@@ -1605,7 +1586,7 @@ Timestamp AeraVisualizerWindow::unstepEvent(Timestamp minimumTime, bool& foundGr
     setSuccessRateEvent->object_->code(MDL_CNT) = Atom::Float(setSuccessRateEvent->oldEvidenceCount_);
     setSuccessRateEvent->object_->code(MDL_SR) = Atom::Float(setSuccessRateEvent->oldSuccessRate_);
 
-    auto modelItem = dynamic_cast<ModelItem*>(modelsScene_->getAeraGraphicsItem(setSuccessRateEvent->object_));
+    auto modelItem = dynamic_cast<ModelItem*>(semanticsView_->getModelsScene()->getAeraGraphicsItem(setSuccessRateEvent->object_));
     if (modelItem) {
       if (setSuccessRateEvent->evidenceCount_ != setSuccessRateEvent->oldEvidenceCount_ &&
           setSuccessRateEvent->successRate_ == setSuccessRateEvent->oldSuccessRate_)
@@ -1621,7 +1602,7 @@ Timestamp AeraVisualizerWindow::unstepEvent(Timestamp minimumTime, bool& foundGr
       }
 
       modelItem->updateFromModel();
-      modelsScene_->establishFlashTimer();
+      semanticsView_->getModelsScene()->establishFlashTimer();
     }
   }
   else if (event->eventType_ == SetModelStrengthEvent::EVENT_TYPE) {
@@ -1630,31 +1611,31 @@ Timestamp AeraVisualizerWindow::unstepEvent(Timestamp minimumTime, bool& foundGr
 
     setStrengthEvent->object_->code(MDL_STRENGTH) = Atom::Float(setStrengthEvent->oldStrength_);
 
-    auto modelItem = dynamic_cast<ModelItem*>(modelsScene_->getAeraGraphicsItem(setStrengthEvent->object_));
+    auto modelItem = dynamic_cast<ModelItem*>(semanticsView_->getModelsScene()->getAeraGraphicsItem(setStrengthEvent->object_));
     if (modelItem) {
       modelItem->strengthFlashCountdown_ = AeraVisualizerScene::FLASH_COUNT;
 
       modelItem->updateFromModel();
-      modelsScene_->establishFlashTimer();
+      semanticsView_->getModelsScene()->establishFlashTimer();
     }
   }
   else if (event->eventType_ == PhaseInModelEvent::EVENT_TYPE) {
     // Find the ModelItem for this event and set its appearance to not phased out.
-    auto modelItem = dynamic_cast<ModelItem*>(modelsScene_->getAeraGraphicsItem(event->object_));
+    auto modelItem = dynamic_cast<ModelItem*>(semanticsView_->getModelsScene()->getAeraGraphicsItem(event->object_));
     if (modelItem)
       // Set the background color. Assume the model was phased out before phase in.
       modelItem->setBrush(phasedOutModelColor_);
   }
   else if (event->eventType_ == PhaseOutModelEvent::EVENT_TYPE) {
     // Find the ModelItem for this event and set its appearance to not phased out.
-    auto modelItem = dynamic_cast<ModelItem*>(modelsScene_->getAeraGraphicsItem(event->object_));
+    auto modelItem = dynamic_cast<ModelItem*>(semanticsView_->getModelsScene()->getAeraGraphicsItem(event->object_));
     if (modelItem)
       // Set the background color.
       modelItem->setBrush(Qt::white);
   }
   else if (event->eventType_ == DeleteModelEvent::EVENT_TYPE) {
     // Find the ModelItem for this event and set its appearance to not deleted.
-    auto modelItem = dynamic_cast<ModelItem*>(modelsScene_->getAeraGraphicsItem(event->object_));
+    auto modelItem = dynamic_cast<ModelItem*>(semanticsView_->getModelsScene()->getAeraGraphicsItem(event->object_));
     if (modelItem)
       // Set the background color.
       modelItem->setBrush(Qt::white);
@@ -1984,6 +1965,28 @@ void AeraVisualizerWindow::fitAll() {
   return;
 }
 
+void AeraVisualizerWindow::createDockWidgets() {
+  // Configure docking settings
+  setDockNestingEnabled(true);
+  setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
+
+  // Set up the semantics view
+  semanticsView_ = new SemanticsView(replicodeObjects_, this);
+  semanticsView_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::TopDockWidgetArea);
+  addDockWidget(Qt::LeftDockWidgetArea, semanticsView_);
+  
+  // Set up the explanation log
+  explanationLogView_ = new ExplanationLogView(this, replicodeObjects_);
+  addDockWidget(Qt::RightDockWidgetArea, explanationLogView_);
+
+  // Make the timeline a fixed dock widget so it's always at the bottom of the window
+  playerControlView_ = new QDockWidget("Player Control Panel", this);
+  playerControlView_->setWidget(getPlayerControlPanel());
+  playerControlView_->setFeatures(QDockWidget::NoDockWidgetFeatures);
+  playerControlView_->setTitleBarWidget(new QWidget());
+  addDockWidget(Qt::BottomDockWidgetArea, playerControlView_);
+}
+
 void AeraVisualizerWindow::createActions()
 {
   exitAction_ = new QAction(tr("E&xit"), this);
@@ -2035,14 +2038,9 @@ void AeraVisualizerWindow::createMenus()
   fileMenu->addAction(exitAction_);
 
   QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
-  viewMenu->addAction(zoomHomeAction_);
-  viewMenu->addAction(zoomInAction_);
-  viewMenu->addAction(zoomOutAction_);
   viewMenu->addAction(findAction_);
-  viewMenu->addSeparator();
-  if (explanationLogView_)
-    viewMenu->addAction(explanationLogView_->toggleViewAction());
-  viewMenu->addAction(modelsView_->toggleViewAction());
+  viewMenu->addAction(explanationLogView_->toggleViewAction());
+  viewMenu->addAction(semanticsView_->toggleViewAction());
 
   QMenu* findMenu = menuBar()->addMenu(tr("Fin&d"));
   findMenu->addAction(findAction_);
@@ -2053,18 +2051,19 @@ void AeraVisualizerWindow::createMenus()
 
 void AeraVisualizerWindow::createToolbars()
 {
-  QToolBar* toolbar = addToolBar(tr("Main"));
-  toolbar->addAction(zoomHomeAction_);
-  toolbar->addAction(zoomInAction_);
-  toolbar->addAction(zoomOutAction_);
-  toolbar->addAction(findAction_);
+  timelineControls_ = new QToolBar(this); //addToolBar(tr("Main"));
+  timelineControls_->addAction(zoomHomeAction_);
+  timelineControls_->addAction(zoomInAction_);
+  timelineControls_->addAction(zoomOutAction_);
+  timelineControls_->addAction(findAction_);
+  timelineControls_->setIconSize(QSize(16, 16));
 
-  toolbar->addSeparator();
+  timelineControls_->addSeparator();
   // Checkbox for auto scroll
-  toolbar->addWidget(new AeraCheckbox("Auto-scroll", SettingsKeyAutoScroll, this));
+  timelineControls_->addWidget(new AeraCheckbox("Auto-scroll", SettingsKeyAutoScroll, this));
 
-  toolbar->addSeparator();
-  toolbar->addWidget(new QLabel("Show/Hide: ", this));
+  timelineControls_->addSeparator();
+  timelineControls_->addWidget(new QLabel("Show/Hide: ", this));
 
   const QColor simulationColor("#ffffdc");
   // Show simulations by default.
@@ -2077,18 +2076,18 @@ void AeraVisualizerWindow::createToolbars()
     for (auto i = simulationEventTypes_.begin(); i != simulationEventTypes_.end(); ++i)
       mainScene_->setItemsVisible(*i, state == Qt::Checked);
     });
-  toolbar->addWidget(simulationsCheckBox_);
+  timelineControls_->addWidget(simulationsCheckBox_);
 
   allSimulationInputsCheckBox_ = new AeraCheckbox("All Inputs", SettingsKeyAllSimulationInputsVisible, this, Qt::Unchecked);
   allSimulationInputsCheckBox_->setColor(simulationColor);
-  toolbar->addWidget(allSimulationInputsCheckBox_);
+  timelineControls_->addWidget(allSimulationInputsCheckBox_);
 
   singleStepSimulationCheckBox_ = new AeraCheckbox("Single Step", SettingsKeySingleStepSimulationVisible, this, Qt::Unchecked);
   singleStepSimulationCheckBox_->setColor(simulationColor);
-  toolbar->addWidget(singleStepSimulationCheckBox_);
+  timelineControls_->addWidget(singleStepSimulationCheckBox_);
 
   // Separate the non-simulations check boxes.
-  toolbar->addWidget(new QLabel("    ", this));
+  timelineControls_->addWidget(new QLabel("    ", this));
 
   // Show non-simulations by default.
   nonSimulationsCheckBox_ = new AeraCheckbox("Non-Simulations", SettingsKeyNonSimulationsVisible, this, Qt::Checked);
@@ -2111,32 +2110,32 @@ void AeraVisualizerWindow::createToolbars()
         ModelImdlPredictionEvent::EVENT_TYPE, requirementsCheckBox_->checkState() == Qt::Checked);
     }
   });
-  toolbar->addWidget(nonSimulationsCheckBox_);
+  timelineControls_->addWidget(nonSimulationsCheckBox_);
 
   essenceFactsCheckBox_ = new AeraCheckbox("Essence Facts", SettingsKeyEssenceFactsVisible, this);
   connect(essenceFactsCheckBox_, &QCheckBox::stateChanged, [=](int state) {
     mainScene_->setAutoFocusItemsVisible("essence", state == Qt::Checked);  });
-  toolbar->addWidget(essenceFactsCheckBox_);
+  timelineControls_->addWidget(essenceFactsCheckBox_);
 
   instantiatedCompositeStatesCheckBox_ = new AeraCheckbox("Instantiated Comp. States", SettingsKeyInstantiatedCompositeStatesVisible, this);
   connect(instantiatedCompositeStatesCheckBox_, &QCheckBox::stateChanged, [=](int state) {
     mainScene_->setItemsVisible(NewInstantiatedCompositeStateEvent::EVENT_TYPE, state == Qt::Checked); });
-  toolbar->addWidget(instantiatedCompositeStatesCheckBox_);
+  timelineControls_->addWidget(instantiatedCompositeStatesCheckBox_);
 
   instantiatedModelsCheckBox_ = new AeraCheckbox("Instantiated Models", SettingsKeyInstantiatedModelsVisible, this);
   connect(instantiatedModelsCheckBox_, &QCheckBox::stateChanged, [=](int state) {
     mainScene_->setItemsVisible(NewInstantiatedModelEvent::EVENT_TYPE, state == Qt::Checked); });
-  toolbar->addWidget(instantiatedModelsCheckBox_);
+  timelineControls_->addWidget(instantiatedModelsCheckBox_);
 
   predictedInstantiatedCompositeStatesCheckBox_ = new AeraCheckbox("Pred. Instantiated Comp. States", SettingsKeyPredictedInstantiatedCompositeStatesVisible, this);
   connect(predictedInstantiatedCompositeStatesCheckBox_, &QCheckBox::stateChanged, [=](int state) {
     mainScene_->setItemsVisible(NewPredictedInstantiatedCompositeStateEvent::EVENT_TYPE, state == Qt::Checked); });
-  toolbar->addWidget(predictedInstantiatedCompositeStatesCheckBox_);
+  timelineControls_->addWidget(predictedInstantiatedCompositeStatesCheckBox_);
 
   requirementsCheckBox_ = new AeraCheckbox("Requirements", SettingsKeyRequirementsVisible, this);
   connect(requirementsCheckBox_, &QCheckBox::stateChanged, [=](int state) {
     mainScene_->setItemsVisible(ModelImdlPredictionEvent::EVENT_TYPE, state == Qt::Checked);  });
-  toolbar->addWidget(requirementsCheckBox_);
+  timelineControls_->addWidget(requirementsCheckBox_);
 }
 
 }

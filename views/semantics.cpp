@@ -5,6 +5,7 @@
 //_/_/ Copyright (c) 2018-2023 Jeff Thompson
 //_/_/ Copyright (c) 2018-2023 Kristinn R. Thorisson
 //_/_/ Copyright (c) 2018-2023 Icelandic Institute for Intelligent Machines
+//_/_/ Copyright (c) 2023 Chloe Schaff
 //_/_/ http://www.iiim.is
 //_/_/
 //_/_/ --- Open-Source BSD License, with CADIA Clause v 1.0 ---
@@ -51,68 +52,77 @@
 //_/_/ 
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-#ifndef EXPLANATION_LOG_HPP
-#define EXPLANATION_LOG_HPP
 
-#include <QTextBrowser>
-#include <QDockWidget>
+#include "semantics.hpp"
 #include "../aera-visualizer-window.hpp"
 
+#include <QGraphicsView>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QToolBar>
+
+
 namespace aera_visualizer {
-/**
- * ExplanationLogView extends QDockWidget to allow the user to
- * rearrange it as needed
- */
-class ExplanationLogView : public QDockWidget
+
+SemanticsView::SemanticsView(ReplicodeObjects replicodeObjects, AeraVisualizerWindow* mainWindow)
+	: QDockWidget("Semantics View", mainWindow)
 {
-  Q_OBJECT
+	QWidget* container = new QWidget();
+	container->setObjectName("container");
+	//container->setStyleSheet("QWidget#container { background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 0, 0); }");
 
-public:
-  /**
-   * Create an ExplanationLogView.
-   * \param mainWindow The main parent window for this window.
-   * \param replicodeObjects The ReplicodeObjects used to find objects.
-   */
-  ExplanationLogView(AeraVisualizerWindow* mainWindow, ReplicodeObjects& replicodeObjects);
+	modelsScene_ = new AeraVisualizerScene(replicodeObjects, mainWindow, false);
 
-  void appendHtml(const QString& html)
-  {
-    // TODO: Does QTextBrowser have an actual append operation?
-    html_ += html;
-    textBrowser_->setText(html_);
-  }
+	
+	zoomInAction_ = new QAction(QIcon(":/images/zoom-in.png"), tr("Zoom In"), this);
+	zoomInAction_->setStatusTip(tr("Zoom In"));
+	zoomInAction_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Equal));
+	connect(zoomInAction_, SIGNAL(triggered()), this, SLOT(zoomIn()));
 
-  void appendHtml(const std::string& html) { appendHtml(QString(html.c_str())); }
+	zoomOutAction_ = new QAction(QIcon(":/images/zoom-out.png"), tr("Zoom Out"), this);
+	zoomOutAction_->setStatusTip(tr("Zoom Out"));
+	zoomOutAction_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus));
+	connect(zoomOutAction_, SIGNAL(triggered()), this, SLOT(zoomOut()));
 
-private slots:
-  void textBrowserAnchorClicked(const QUrl& url);
+	zoomHomeAction_ = new QAction(QIcon(":/images/zoom-home.png"), tr("Zoom Home"), this);
+	zoomHomeAction_->setStatusTip(tr("Zoom to show all"));
+	zoomHomeAction_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Home));
+	connect(zoomHomeAction_, SIGNAL(triggered()), this, SLOT(zoomHome()));
 
-private:
-  /**
-   * ExplanationLogView::TextBrowser extends QTextBrowser so that we can override its
-   * mouseMoveEvent.
-   */
-  class TextBrowser : public QTextBrowser {
-  public:
-    TextBrowser(ExplanationLogView* parent)
-      : QTextBrowser(parent), parent_(parent)
-    {}
+	auto modelsSceneView = new QGraphicsView(modelsScene_, this);
+	modelsSceneView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	modelsSceneView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	modelsSceneView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
 
-    ExplanationLogView* parent_;
+	QToolBar* zoomControls = new QToolBar(this);
+	zoomControls->addAction(zoomHomeAction_);
+	zoomControls->addAction(zoomInAction_);
+	zoomControls->addAction(zoomOutAction_);
+	zoomControls->setIconSize(QSize(16, 16));
 
-  protected:
-    void mouseMoveEvent(QMouseEvent* event) override;
-  };
-  friend TextBrowser;
+	QVBoxLayout* stack = new QVBoxLayout(this);
+	stack->addWidget(modelsSceneView);
+	stack->addWidget(zoomControls);
+	container->setLayout(stack);
 
-  AeraVisualizerWindow* mainWindow_;
-  ReplicodeObjects replicodeObjects_;
 
-  // TODO: We should be able to use textBrowser_ to append HTML.
-  QString html_;
-  TextBrowser* textBrowser_;
-};
-
+	setWidget(container);
 }
 
-#endif
+void SemanticsView::zoomIn()
+{
+	modelsScene_->scaleViewBy(1.09);
+}
+
+void SemanticsView::zoomOut()
+{
+	modelsScene_->scaleViewBy(1 / 1.09);
+}
+
+void SemanticsView::zoomHome()
+{
+	modelsScene_->zoomViewHome();
+}
+
+}

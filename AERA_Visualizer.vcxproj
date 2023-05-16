@@ -354,11 +354,16 @@
     <ClCompile Include="submodules\AERA\usr_operators\auto_focus_callback.cpp" />
     <ClCompile Include="find-dialog.cpp" />
     <ClCompile Include="views\explanation-log.cpp" />
+    <ClCompile Include="views\semantics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="aera_visualizer.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="views\semantics.hpp">
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING;WIN64;_DEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;EXECUTIVE_EXPORTS;CORELIBRARY_EXPORTS;WITH_DETAIL_OID;VISUALIZER_REMOTE;%(PreprocessorDefinitions)</Define>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;EXECUTIVE_EXPORTS;CORELIBRARY_EXPORTS;WITH_DETAIL_OID;VISUALIZER_REMOTE;%(PreprocessorDefinitions)</Define>
+    </QtMoc>
     <QtMoc Include="views\explanation-log.hpp">
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING;WIN64;_DEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;EXECUTIVE_EXPORTS;CORELIBRARY_EXPORTS;WITH_DETAIL_OID;VISUALIZER_REMOTE;%(PreprocessorDefinitions)</Define>
       <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;EXECUTIVE_EXPORTS;CORELIBRARY_EXPORTS;WITH_DETAIL_OID;VISUALIZER_REMOTE;%(PreprocessorDefinitions)</Define>

@@ -301,6 +301,9 @@
     <ClCompile Include="views\explanation-log.cpp">
       <Filter>views</Filter>
     </ClCompile>
+    <ClCompile Include="views\semantics.cpp">
+      <Filter>views</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aera-event.hpp" />
@@ -680,6 +683,9 @@
     <QtMoc Include="aera-checkbox.h" />
     <QtMoc Include="find-dialog.hpp" />
     <QtMoc Include="views\explanation-log.hpp">
+      <Filter>views</Filter>
+    </QtMoc>
+    <QtMoc Include="views\semantics.hpp">
       <Filter>views</Filter>
     </QtMoc>
   </ItemGroup>

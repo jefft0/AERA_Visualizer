@@ -60,6 +60,7 @@
 #include "aera-event.hpp"
 #include "aera-visualizer-window-base.hpp"
 #include "aera-checkbox.h"
+#include "views/semantics.hpp"
 
 #include <vector>
 #include <QIcon>
@@ -110,12 +111,6 @@ public:
    * Add the startup items to modelsScene_ for the startupEvents_ added by addEvents().
    */
   void addStartupItems();
-
-  void setExplanationLogView(ExplanationLogView* explanationLogView)
-  {
-    explanationLogView_ = explanationLogView;
-    createMenus(); // Redo the menu to add the explanation log in the show/hide action
-  }
 
   ExplanationLogView* getExplanationLogView() { return explanationLogView_;  }
 
@@ -196,7 +191,7 @@ public:
   }
 
   AeraVisualizerScene* getModelsScene() {
-    return modelsScene_;
+    return semanticsView_->getModelsScene();
   }
 
 protected:
@@ -247,9 +242,12 @@ private slots:
 
 private:
   friend class AeraVisualizerWindowBase;
+  void createDockWidgets();
   void createActions();
   void createMenus();
   void createToolbars();
+
+  QToolBar* timelineControls_;
 
   /**
    * Get the time stamp from the decimal strings of seconds, milliseconds and
@@ -297,11 +295,10 @@ private:
   void timerEvent(QTimerEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
 
-  AeraVisualizerScene* modelsScene_;
   AeraVisualizerScene* mainScene_;
   AeraVisualizerScene* selectedScene_;
 
-  QDockWidget* modelsView_;
+  SemanticsView* semanticsView_;
   QDockWidget* playerControlView_;
 
   QAction* exitAction_;

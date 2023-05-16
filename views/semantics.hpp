@@ -5,6 +5,7 @@
 //_/_/ Copyright (c) 2018-2023 Jeff Thompson
 //_/_/ Copyright (c) 2018-2023 Kristinn R. Thorisson
 //_/_/ Copyright (c) 2018-2023 Icelandic Institute for Intelligent Machines
+//_/_/ Copyright (c) 2023 Chloe Schaff
 //_/_/ http://www.iiim.is
 //_/_/
 //_/_/ --- Open-Source BSD License, with CADIA Clause v 1.0 ---
@@ -51,68 +52,47 @@
 //_/_/ 
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-#ifndef EXPLANATION_LOG_HPP
-#define EXPLANATION_LOG_HPP
+#ifndef SEMANTICS_HPP
+#define SEMANTICS_HPP
 
-#include <QTextBrowser>
 #include <QDockWidget>
-#include "../aera-visualizer-window.hpp"
+#include "../replicode-objects.hpp"
+#include "../graphics-items/aera-visualizer-scene.hpp"
 
 namespace aera_visualizer {
-/**
- * ExplanationLogView extends QDockWidget to allow the user to
+
+	/**
+ * SemanticsView extends QDockWidget to allow the user to
  * rearrange it as needed
  */
-class ExplanationLogView : public QDockWidget
+class SemanticsView : public QDockWidget
 {
-  Q_OBJECT
+	Q_OBJECT
 
 public:
-  /**
-   * Create an ExplanationLogView.
-   * \param mainWindow The main parent window for this window.
-   * \param replicodeObjects The ReplicodeObjects used to find objects.
-   */
-  ExplanationLogView(AeraVisualizerWindow* mainWindow, ReplicodeObjects& replicodeObjects);
+	/**
+	 * Create a SemanticsView.
+	 * \param replicodeObjects The ReplicodeObjects used to find objects.
+	 * \param mainWindow The main parent window for this window.
+	 */
+	SemanticsView(ReplicodeObjects replicodeObjects, AeraVisualizerWindow* mainWindow);
 
-  void appendHtml(const QString& html)
-  {
-    // TODO: Does QTextBrowser have an actual append operation?
-    html_ += html;
-    textBrowser_->setText(html_);
-  }
-
-  void appendHtml(const std::string& html) { appendHtml(QString(html.c_str())); }
+	// Make this available so it can be updated by the main window
+	AeraVisualizerScene* getModelsScene() { return modelsScene_; }
 
 private slots:
-  void textBrowserAnchorClicked(const QUrl& url);
+	void zoomIn();
+	void zoomOut();
+	void zoomHome();
 
 private:
-  /**
-   * ExplanationLogView::TextBrowser extends QTextBrowser so that we can override its
-   * mouseMoveEvent.
-   */
-  class TextBrowser : public QTextBrowser {
-  public:
-    TextBrowser(ExplanationLogView* parent)
-      : QTextBrowser(parent), parent_(parent)
-    {}
+	AeraVisualizerScene* modelsScene_;
 
-    ExplanationLogView* parent_;
-
-  protected:
-    void mouseMoveEvent(QMouseEvent* event) override;
-  };
-  friend TextBrowser;
-
-  AeraVisualizerWindow* mainWindow_;
-  ReplicodeObjects replicodeObjects_;
-
-  // TODO: We should be able to use textBrowser_ to append HTML.
-  QString html_;
-  TextBrowser* textBrowser_;
+	QAction* zoomInAction_;
+	QAction* zoomOutAction_;
+	QAction* zoomHomeAction_;
+	
 };
-
 }
 
 #endif

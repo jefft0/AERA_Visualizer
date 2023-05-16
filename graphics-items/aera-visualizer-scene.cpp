@@ -77,13 +77,11 @@ using namespace r_exec;
 namespace aera_visualizer {
 
 AeraVisualizerScene::AeraVisualizerScene(
-  ReplicodeObjects& replicodeObjects, AeraVisualizerWindow* parent, bool isMainScene,
-  const OnSceneSelected& onSceneSelected)
+  ReplicodeObjects& replicodeObjects, AeraVisualizerWindow* parent, bool isMainScene)
 : QGraphicsScene(parent),
   parent_(parent),
   replicodeObjects_(replicodeObjects),
   isMainScene_(isMainScene),
-  onSceneSelected_(onSceneSelected),
   essencePropertyObject_(replicodeObjects.getObject("essence")),
   didInitialFit_(false),
   thisFrameTime_(seconds(0)),
@@ -351,9 +349,6 @@ void AeraVisualizerScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent)
     return;
 
   views().at(0)->setDragMode(QGraphicsView::ScrollHandDrag);
-  if (onSceneSelected_)
-    // Notify the parent that this scene was selected.
-    onSceneSelected_();
   QGraphicsScene::mousePressEvent(mouseEvent);
 }
 

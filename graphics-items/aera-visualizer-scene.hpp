@@ -81,8 +81,7 @@ public:
   typedef std::function<void()> OnSceneSelected;
 
   explicit AeraVisualizerScene(
-    ReplicodeObjects& replicodeObjects, AeraVisualizerWindow* parent, bool isMainScene,
-    const OnSceneSelected& onSceneSelected);
+    ReplicodeObjects& replicodeObjects, AeraVisualizerWindow* parent, bool isMainScene);
 
   AeraVisualizerWindow* getParent() { return parent_; }
 
@@ -145,6 +144,13 @@ public:
   // Reset all boxes to normal
   void unhighlightAll();
 
+  /**
+   * Scale the first QGraphicsView by the given factor.
+   * This also sets currentScaleFactor.
+   */
+  void scaleViewBy(double factor);
+  void zoomViewHome();
+
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
@@ -156,12 +162,6 @@ protected:
 private:
   friend class AeraVisualizerWindow;
 
-  /**
-   * Scale the first QGraphicsView by the given factor.
-   * This also sets currentScaleFactor.
-   */
-  void scaleViewBy(double factor);
-  void zoomViewHome();
   void addAeraGraphicsItem(AeraGraphicsItem* item);
   void removeAeraGraphicsItem(AeraGraphicsItem* item);
 
@@ -226,7 +226,6 @@ private:
   AeraVisualizerWindow* parent_;
   ReplicodeObjects& replicodeObjects_;
   bool isMainScene_;
-  OnSceneSelected onSceneSelected_;
   r_code::Code* essencePropertyObject_;
   bool didInitialFit_;
   QList<QGraphicsTextItem*> timestampTexts_;
