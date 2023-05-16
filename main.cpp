@@ -72,13 +72,14 @@ using namespace aera_visualizer;
 
 /* To Do
 To Implement
-- Min. window sizes for views should be based on screen res
 - Clicking "Focus On", etc. buttons should open relevant view
 - Dockable widgets need padding for mainwindow borders
 - Docked tabs should be at the top of the view
 
 Issues
-- 
+- Main and model scene widths need to be more flexible
+  - Especially when window not maximized
+- Width setting should be proportional to window size, not absolute
 
 Crashes
 - 
@@ -176,16 +177,7 @@ int main(int argv, char *args[])
     return -1;
 
   mainWindow.setWindowTitle(QString("AERA Visualizer - ") + QFileInfo(settings.source_file_name_.c_str()).fileName());
-  QScreen* screen = QGuiApplication::primaryScreen();
-  int availableHeight = screen->availableSize().height();
-  int availableWidth = screen->availableSize().width();
-  const int titleBarHeight = 35;
-  const int explanationLogWindowWidth = 315;
-  const int left = 0;
-  const int top = titleBarHeight;
-  const int width = availableWidth - explanationLogWindowWidth;
-  const int height = availableHeight - titleBarHeight;
-  mainWindow.setGeometry(left, top, screen->availableSize().width(), height);
+  mainWindow.setWindowState(Qt::WindowMaximized);
   
   // Open the usual views
   auto explanationLogView = new ExplanationLogView(&mainWindow, replicodeObjects);

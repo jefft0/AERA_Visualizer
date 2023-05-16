@@ -185,19 +185,7 @@ AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
   mainScene_ = 0;
   setPlayTime(replicodeObjects_.getTimeReference());
 
-  createToolbars();
-
-  modelsScene_ = new AeraVisualizerScene(replicodeObjects_, this, false,
-    [=]() { selectedScene_ = modelsScene_; });
-  auto modelsSceneView = new QGraphicsView(modelsScene_, this);
-  modelsSceneView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  modelsSceneView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  modelsSceneView->setMinimumWidth(200);
-  
-  // Make the models view dockable
-  modelsView_ = new QDockWidget("Models View", this);
-  modelsView_->setWidget(modelsSceneView);
-  addDockWidget(Qt::LeftDockWidgetArea, modelsView_);
+  createToolbars();  
   
   // The timeline view is the central widget
   mainScene_ = new AeraVisualizerScene(replicodeObjects_, this, true,
@@ -206,13 +194,29 @@ AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
   auto mainSceneView = new MyQGraphicsView(mainScene_, this);
   mainSceneView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   mainSceneView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  mainSceneView->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding));
+  mainSceneView->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred));
   // Set a default selected scene.
   selectedScene_ = mainScene_;
+
+  // Set up the models scene
+  modelsScene_ = new AeraVisualizerScene(replicodeObjects_, this, false,
+    [=]() { selectedScene_ = modelsScene_; });
+  auto modelsSceneView = new QGraphicsView(modelsScene_, this);
+  modelsSceneView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  modelsSceneView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  modelsSceneView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
+
+  // Make the models view dockable
+  modelsView_ = new QDockWidget("Models View", this);
+  modelsView_->setWidget(modelsSceneView);
+  modelsView_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::TopDockWidgetArea);
+  addDockWidget(Qt::LeftDockWidgetArea, modelsView_);
   
-  // Make the timeline dockable
+  // Make the timeline a fixed dock widget so it's always at the bottom of the window
   playerControlView_ = new QDockWidget("Player Control Panel", this);
   playerControlView_->setWidget(getPlayerControlPanel());
+  playerControlView_->setFeatures(QDockWidget::NoDockWidgetFeatures);
+  playerControlView_->setTitleBarWidget(new QWidget());
   addDockWidget(Qt::BottomDockWidgetArea, playerControlView_);
 
   createMenus();
@@ -2039,7 +2043,6 @@ void AeraVisualizerWindow::createMenus()
   if (explanationLogView_)
     viewMenu->addAction(explanationLogView_->toggleViewAction());
   viewMenu->addAction(modelsView_->toggleViewAction());
-  viewMenu->addAction(playerControlView_->toggleViewAction());
 
   QMenu* findMenu = menuBar()->addMenu(tr("Fin&d"));
   findMenu->addAction(findAction_);
