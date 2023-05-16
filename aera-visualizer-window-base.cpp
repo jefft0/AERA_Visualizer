@@ -82,12 +82,11 @@ void AeraVisualizerWindowBase::createPlayerControlPanel()
   playPauseButton_ = new QToolButton(this);
   connect(playPauseButton_, SIGNAL(clicked()), this, SLOT(playPauseButtonClicked()));
   playPauseButton_->setIcon(playIcon_);
-  playerLayout->addWidget(playPauseButton_);
 
   stepBackButton_ = new QToolButton(this);
   stepBackButton_->setIcon(QIcon(":/images/play-step-back.png"));
   connect(stepBackButton_, SIGNAL(clicked()), this, SLOT(stepBackButtonClicked()));
-  playerLayout->addWidget(stepBackButton_);
+  
   playSlider_ = new QSlider(Qt::Horizontal, this);
   playSlider_->setMaximum(2000);
 #if 1
@@ -97,15 +96,20 @@ void AeraVisualizerWindowBase::createPlayerControlPanel()
 #else
   connect(playSlider_, SIGNAL(valueChanged(int)), this, SLOT(playSliderValueChanged(int)));
 #endif
-  playerLayout->addWidget(playSlider_);
+  
   stepButton_ = new QToolButton(this);
   stepButton_->setIcon(QIcon(":/images/play-step.png"));
   connect(stepButton_, SIGNAL(clicked()), this, SLOT(stepButtonClicked()));
-  playerLayout->addWidget(stepButton_);
 
   playTimeLabel_ = new ClickableLabel("000s:000ms:000us", this);
   playTimeLabel_->setFont(QFont("Courier", 10));
   connect(playTimeLabel_, SIGNAL(clicked()), this, SLOT(playTimeLabelClicked()));
+  
+  // Put together the player layout
+  playerLayout->addWidget(stepBackButton_);
+  playerLayout->addWidget(playPauseButton_);
+  playerLayout->addWidget(stepButton_);
+  playerLayout->addWidget(playSlider_);
   playerLayout->addWidget(playTimeLabel_);
 
   playerControlPanel_ = new QWidget();
