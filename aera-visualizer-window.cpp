@@ -209,10 +209,6 @@ AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
   mainSceneView->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding));
   // Set a default selected scene.
   selectedScene_ = mainScene_;
-
-  timelineView_ = new QDockWidget("Timeline View", this);
-  timelineView_->setWidget(mainSceneView);
-  addDockWidget(Qt::TopDockWidgetArea, timelineView_);
   
   // Make the timeline dockable
   playerControlView_ = new QDockWidget("Player Control Panel", this);
@@ -221,11 +217,11 @@ AeraVisualizerWindow::AeraVisualizerWindow(ReplicodeObjects& replicodeObjects)
 
   createMenus();
 
-  /*auto centralWidget = new QWidget();
+  auto centralWidget = new QWidget();
   auto centralLayout = new QVBoxLayout();
   centralLayout->addWidget(mainSceneView);
   centralWidget->setLayout(centralLayout);
-  setCentralWidget(centralWidget);*/
+  setCentralWidget(centralWidget);
 
   setWindowTitle(tr("AERA Visualizer"));
   setUnifiedTitleAndToolBarOnMac(true);
@@ -2044,7 +2040,6 @@ void AeraVisualizerWindow::createMenus()
     viewMenu->addAction(explanationLogView_->toggleViewAction());
   viewMenu->addAction(modelsView_->toggleViewAction());
   viewMenu->addAction(playerControlView_->toggleViewAction());
-  viewMenu->addAction(timelineView_->toggleViewAction());
 
   QMenu* findMenu = menuBar()->addMenu(tr("Fin&d"));
   findMenu->addAction(findAction_);
