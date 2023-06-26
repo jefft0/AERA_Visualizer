@@ -1927,6 +1927,9 @@ void AeraVisualizerWindow::loadNewSeed()
   // Send this to the text output so it can read in the outputs
   textOutputView_->setOutputFilepaths(settings.decompilation_file_path_, settings.runtime_output_file_path_);
 
+  // Update internal environment view with Mem so it can display test stats
+  internalEnvView_->setMem(aera_->getMem());
+
   // This version isn't resettable just yet
   newInstanceAction_->setEnabled(false);
   loadOutputAction_->setEnabled(false);
@@ -1976,6 +1979,7 @@ void AeraVisualizerWindow::updateObjectsAndEvents()
   playerView_->setPlayTime(replicodeObjects_.getTimeReference());
   findDialog_->setReplicodeObjects(&replicodeObjects_);
   mainScene_->setReplicodeObjects(&replicodeObjects_);
+  internalEnvView_->refresh();
 
   // Some views require the text outputs
   aera_->brainDump();
@@ -2073,6 +2077,11 @@ void AeraVisualizerWindow::createDockWidgets() {
   textOutputView_ = new TextOutputView(this);
   textOutputView_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::TopDockWidgetArea);
   addDockWidget(Qt::RightDockWidgetArea, textOutputView_);
+
+  // Set up the internal environment view
+  internalEnvView_ = new InternalEnvView(this);
+  internalEnvView_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::TopDockWidgetArea);
+  addDockWidget(Qt::LeftDockWidgetArea, internalEnvView_);
 
   // Make the player a fixed dock widget so it's always at the bottom of the window
   playerView_ = new PlayerView(this);

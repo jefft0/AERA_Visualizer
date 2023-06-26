@@ -330,6 +330,9 @@
     <ClCompile Include="views\text-output.cpp">
       <Filter>views</Filter>
     </ClCompile>
+    <ClCompile Include="views\internal-env.cpp">
+      <Filter>views</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aera-event.hpp" />
@@ -734,6 +737,9 @@
       <Filter>views</Filter>
     </QtMoc>
     <QtMoc Include="views\text-output.hpp">
+      <Filter>views</Filter>
+    </QtMoc>
+    <QtMoc Include="views\internal-env.hpp">
       <Filter>views</Filter>
     </QtMoc>
   </ItemGroup>
