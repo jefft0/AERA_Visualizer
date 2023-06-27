@@ -60,10 +60,6 @@
 #include <QLabel>
 #include <QGridLayout>
 
-/* To Do
-* - Need display for when nothing's loaded in (supported programs, logo, etc.)
-*/
-
 using namespace std;
 using namespace std::chrono;
 
@@ -154,6 +150,9 @@ namespace aera_visualizer {
 			identifierLabel_->setText("CART-POLE");
 
 		}
+		else if (identifier_ != "") {
+			identifierLabel_->setText("UNKOWN");
+		}
 		else {
 			// Show not supported message
 		}
@@ -169,16 +168,18 @@ namespace aera_visualizer {
 		foregroundBrush_ = QBrush(QColor("#008300"));
 		backgroundBrush_ = QBrush(QColor("#7ccbcc"));
 		objectBrush_ = QBrush(QColor("#b439b3"));
-		fadedObjectBrush_ = QBrush(QColor("#d48ed2"));
 		transparentBrush_ = QBrush(QColor(0, 0, 0, 0));
+
+		logo_ = QPixmap();
+		logo_.load(":/images/logo_faded.png");
 	}
 
 	QSize EnvCanvas::minimumSizeHint() const {
-		return QSize(75, 100);
+		return QSize(160, 120);
 	}
 
 	QSize EnvCanvas::sizeHint() const {
-		return QSize(300, 400);
+		return QSize(400, 300);
 	}
 
 	void EnvCanvas::drawTimestamp(QPainter &painter) {
@@ -271,17 +272,28 @@ namespace aera_visualizer {
 		}
 		else if (identifier_ == "cart-pole") {
 			// Show not implemented
+			QString message = "Not yet implemented";
+			int textWidth = painter.fontMetrics().width(message);
+			painter.drawText(round((width() - textWidth) / 2), round(height() / 2), message);
 		}
 		else if (identifier_ != "") {
 			// Show not supported
+			QString message = "No TestMem environment found";
+			int textWidth = painter.fontMetrics().width(message);
+			painter.drawText(round((width() - textWidth) / 2), round(height() / 2), message);
 		}
 		else {
-			// Show not loaded
+			// Show the logo when nothing's loaded
+			QPixmap bg = logo_.scaled(QSize(width(), height()), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+			int x = round((width() - bg.width()) / 2);
+			int y = round((height() - bg.height()) / 2);
+
+			painter.drawPixmap(x, y, bg);
 		}
 
 		// Draw the border
 		painter.setBrush(transparentBrush_);
 		painter.drawRect(QRect(0, 0, width(), height()));
-		
 	}
 }

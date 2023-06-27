@@ -117,8 +117,8 @@ private:
 	QBrush foregroundBrush_;
 	QBrush backgroundBrush_;
 	QBrush objectBrush_;
-	QBrush fadedObjectBrush_;
 	QBrush transparentBrush_;
+	QPixmap logo_;
 };
 
 
