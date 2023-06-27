@@ -53,7 +53,6 @@
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 #include "internal-env.hpp"
-//#include "../aera-visualizer-window.hpp"
 
 #include <QPainter>
 #include <QPainterPath>
@@ -65,13 +64,12 @@
 * - Need display for when nothing's loaded in (supported programs, logo, etc.)
 * - Faded balls for past histories (have notes with times attached)
 * - Ball going past max time should be detected and start sidescrolling
-* - Add y axis ticks
-* - Add time in upper right corner
 * - Live update with AERA step functions
 * - Function call to swap to darkmode brushes
 */
 
 using namespace std;
+using namespace std::chrono;
 
 namespace aera_visualizer {
 
@@ -145,12 +143,16 @@ namespace aera_visualizer {
 			forceY_ = aera_->getMem()->getForceY();
 
 			// Update the labels
-			firstDataLabel_->setText("Position: " + QString::fromStdString(std::to_string(positionY_)));
-			secondDataLabel_->setText("Velocity: " + QString::fromStdString(std::to_string(velocityY_)));
-			thirdDataLabel_->setText("Force:    " + QString::fromStdString(std::to_string(forceY_)));
+			QString text;
+			firstDataLabel_->setText(text.sprintf("Position: %07.4f", positionY_));
+			secondDataLabel_->setText(text.sprintf("Velocity: %07.4f", velocityY_));
+			thirdDataLabel_->setText(text.sprintf("Force:    %07.4f", forceY_));
+
+			// Get current elapsed time
+			milliseconds elapsedTime = duration_cast<milliseconds>(aera_->getCurrentTime() - aera_->getStartTime());
 
 			// Update the canvas
-			canvas_->setState(identifier_, positionY_, velocityY_, forceY_);
+			canvas_->setState(identifier_, elapsedTime, positionY_, velocityY_, forceY_);
 		}
 		else if (identifier_ == "cart-pole") {
 			identifierLabel_->setText("CART-POLE");
@@ -159,10 +161,6 @@ namespace aera_visualizer {
 		else {
 			// Show not supported message
 		}
-
-		
-
-		
 
 		update();
 	}
@@ -187,6 +185,53 @@ namespace aera_visualizer {
 		return QSize(400, 400);
 	}
 
+	void EnvCanvas::drawTimestamp(QPainter &painter) {
+		// Put together a time stamp
+		QString timeString = "t = +" + QString::fromStdString(std::to_string(time_.count()) + " ms");
+
+		// Scale the font size with canvas height
+		QFont scaledFont = painter.font();
+		scaledFont.setPointSizeF(height() * 0.05);
+		painter.setFont(scaledFont);
+
+		// Draw the current time in the upper right corner
+		int textWidth = painter.fontMetrics().width(timeString);
+		QRect textRect(width() - textWidth - 10, 10, textWidth, painter.fontMetrics().height());
+		painter.setPen(QPen(palette().text().color()));
+		painter.drawText(textRect, timeString);
+	}
+
+	void EnvCanvas::drawHticks(int y, float min, float max, float interval, QPainter& painter) {
+		int majorTickHeight = round(height() * 0.05 + painter.fontMetrics().height());
+		int minorTickHeight = round(height() * 0.02);
+	
+		// One pixel is this many units
+		float scaleFactor = width() / (max - min);
+
+		// If there's room, subdivide the interval
+		float subdividedInterval = interval / (int)scaleFactor;
+
+		for (float i = min; i <= max; i += interval) {
+			// Draw minor ticks
+			for (float j = i; j < i + interval; j += subdividedInterval) {
+				int x = round(j * scaleFactor);
+				painter.drawLine(x, y, x, y + minorTickHeight);
+			}
+
+			// Draw major ticks
+			int x = round(i * scaleFactor);
+			painter.drawLine(x, y, x, y + majorTickHeight);
+
+			// Draw the tick label
+			QString tick;
+			painter.drawText(
+				x + round(width() * 0.01), y + painter.fontMetrics().height(),
+				tick.sprintf("%.1f", i)
+			);			
+		}
+		
+	}
+
 	void EnvCanvas::paintEvent(QPaintEvent* event) {
 		QPainter painter(this);
 		painter.setRenderHint(QPainter::Antialiasing, true);
@@ -195,16 +240,19 @@ namespace aera_visualizer {
 		painter.fillRect(QRect(0, 0, width(), height()), palette().base());
 
 		if (identifier_ == "ball"){
-			// Draw the ground
+			// Draw the background
 			int groundHeight = round(height() * 0.75);
 			painter.fillRect(QRect(0, 0, width(), groundHeight), backgroundBrush_); // Sky
 			painter.fillRect(QRect(0, groundHeight, width(), round(height() * 0.25)), foregroundBrush_); // Ground
 
+			drawTimestamp(painter);
+			drawHticks(groundHeight, 0, 100, 10, painter);
+
 			// Compute the position and size of the ball
 			int ballDiameter = min(round(width() * 0.15), round(height() * 0.15));
-			int x = round((positionY_ / 80) * (width() - ballDiameter));
+			int x = round((positionY_ / 100) * (width()));
 			int y = groundHeight - ballDiameter;
-			QRect ballRect(x, y, ballDiameter, ballDiameter);
+			QRect ballRect(x - round(ballDiameter/2), y, ballDiameter, ballDiameter);
 
 			// Draw the ball
 			painter.setBrush(objectBrush_);

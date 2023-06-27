@@ -87,8 +87,9 @@ class EnvCanvas : public QWidget {
 public:
 	EnvCanvas(QWidget* parent);
 
-	void setState(string identifier, float posY, float velY, float forceY) {
+	void setState(string identifier, milliseconds time, float posY, float velY, float forceY) {
 		identifier_ = identifier;
+		time_ = time;
 		positionY_ = posY;
 		velocityY_ = velY;
 		forceY_ = forceY;
@@ -103,7 +104,12 @@ protected:
 	void paintEvent(QPaintEvent* event) override;
 
 private:
+	// Various drawing functions
+	void drawTimestamp(QPainter& painter);
+	void drawHticks(int y, float min, float max, float interval, QPainter& painter);
+
 	string identifier_;
+	milliseconds time_;
 	float positionY_;
 	float velocityY_;
 	float forceY_;
