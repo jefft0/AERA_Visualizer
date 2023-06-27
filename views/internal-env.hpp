@@ -56,6 +56,8 @@
 #define INTERNAL_ENV_HPP
 
 #include <QDockWidget>
+#include <QBrush>
+
 #include "../aera-visualizer-window.hpp"
 #include "../replicode-objects.hpp"
 //#include "../submodules/AERA/AERA/test_mem.h"
@@ -105,6 +107,12 @@ private:
 	float positionY_;
 	float velocityY_;
 	float forceY_;
+
+	QBrush foregroundBrush_;
+	QBrush backgroundBrush_;
+	QBrush objectBrush_;
+	QBrush fadedObjectBrush_;
+	QBrush transparentBrush_;
 };
 
 
@@ -147,9 +155,9 @@ private:
 	float forceY_;
 
 	QLabel* identifierLabel_;
-	QLabel* positionLabel_;
-	QLabel* velocityLabel_;
-	QLabel* forceLabel_;
+	QLabel* firstDataLabel_;
+	QLabel* secondDataLabel_;
+	QLabel* thirdDataLabel_;
 };
 }
 

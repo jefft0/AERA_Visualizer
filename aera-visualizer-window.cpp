@@ -2179,6 +2179,7 @@ void AeraVisualizerWindow::createMenus()
   viewMenu->addAction(explanationLogView_->toggleViewAction());
   viewMenu->addAction(semanticsView_->toggleViewAction());
   viewMenu->addAction(textOutputView_->toggleViewAction());
+  viewMenu->addAction(internalEnvView_->toggleViewAction());
 
   QMenu* findMenu = menuBar()->addMenu(tr("Fin&d"));
   findMenu->addAction(findAction_);

@@ -63,12 +63,12 @@
 
 /* To Do
 * - Need display for when nothing's loaded in (supported programs, logo, etc.)
-* - Draw ball in starting position when nothing started
 * - Faded balls for past histories (have notes with times attached)
 * - Ball going past max time should be detected and start sidescrolling
 * - Add y axis ticks
 * - Add time in upper right corner
 * - Live update with AERA step functions
+* - Function call to swap to darkmode brushes
 */
 
 using namespace std;
@@ -92,24 +92,27 @@ namespace aera_visualizer {
 		simulationLabel->setStyleSheet("QLabel { font-weight: bold; }");
 
 		identifierLabel_ = new QLabel(this);
-		identifierLabel_->setText(" - ");
+		identifierLabel_->setText("NONE");
 		identifierLabel_->setAlignment(Qt::AlignCenter);
 		identifierLabel_->setStyleSheet("QLabel { font-size: 18pt; }");
 
-		positionLabel_ = new QLabel(this);
-		velocityLabel_ = new QLabel(this);
-		forceLabel_ = new QLabel(this);
-		positionLabel_->setText("Position: N/A");
-		velocityLabel_->setText("Velocity: N/A");
-		forceLabel_->setText("Force: N/A");
+		firstDataLabel_ = new QLabel(this);
+		secondDataLabel_ = new QLabel(this);
+		thirdDataLabel_ = new QLabel(this);
+		firstDataLabel_->setText("Data1: -");
+		secondDataLabel_->setText("Data2: -");
+		thirdDataLabel_->setText("Data3: -");
+		firstDataLabel_->setStyleSheet("QLabel { font-family: courier; }");
+		secondDataLabel_->setStyleSheet("QLabel { font-family: courier; }");
+		thirdDataLabel_->setStyleSheet("QLabel { font-family: courier; }");
 
 		// Set up layouts
 		QGridLayout* dataLayout = new QGridLayout();
 		dataLayout->addWidget(simulationLabel, 0, 0);
 		dataLayout->addWidget(identifierLabel_, 1, 0, 2, 1);
-		dataLayout->addWidget(positionLabel_, 0, 1);
-		dataLayout->addWidget(velocityLabel_, 1, 1);
-		dataLayout->addWidget(forceLabel_, 2, 1);
+		dataLayout->addWidget(firstDataLabel_, 0, 1);
+		dataLayout->addWidget(secondDataLabel_, 1, 1);
+		dataLayout->addWidget(thirdDataLabel_, 2, 1);
 
 
 		QVBoxLayout* layout = new QVBoxLayout();
@@ -123,26 +126,43 @@ namespace aera_visualizer {
 	void InternalEnvView::setMem(TestMem<r_exec::LObject, r_exec::MemStatic>* mem) {
 		// Get the updated information
 		mem_ = mem;
-		identifier_ = mem_->getIdentifier();
-
-		// Update the label
-		if (identifier_ == "ball")
-			identifierLabel_->setText("BALL");
-		else if (identifier_ == "cart-pole")
-			identifierLabel_->setText("CART-POLE");
 
 		// Refresh the drawing and data output
 		refresh();
 	}
 
 	void InternalEnvView::refresh() {
-		// Get new values from mem_
-		positionY_ = mem_->getPositionY();
-		velocityY_ = mem_->getVelocityY();
-		forceY_ = mem_->getForceY();
+		identifier_ = mem_->getIdentifier();
 
-		// Update the canvas
-		canvas_->setState(identifier_, positionY_, velocityY_, forceY_);
+		// Use identifier_ to decide what to show
+		if (identifier_ == "ball") {
+			// Update the label
+			identifierLabel_->setText("BALL");
+
+			// Get new values from mem_
+			positionY_ = mem_->getPositionY();
+			velocityY_ = mem_->getVelocityY();
+			forceY_ = mem_->getForceY();
+
+			// Update the labels
+			firstDataLabel_->setText("Position: " + QString::fromStdString(std::to_string(positionY_)));
+			secondDataLabel_->setText("Velocity: " + QString::fromStdString(std::to_string(velocityY_)));
+			thirdDataLabel_->setText("Force:    " + QString::fromStdString(std::to_string(forceY_)));
+
+			// Update the canvas
+			canvas_->setState(identifier_, positionY_, velocityY_, forceY_);
+		}
+		else if (identifier_ == "cart-pole") {
+			identifierLabel_->setText("CART-POLE");
+
+		}
+		else {
+			// Show not supported message
+		}
+
+		
+
+		
 
 		update();
 	}
@@ -151,7 +171,12 @@ namespace aera_visualizer {
 	EnvCanvas::EnvCanvas(QWidget* parent)
 	:	QWidget(parent)
 	{
-		// Nothing here right now
+		// Set up the brushes
+		foregroundBrush_ = QBrush(QColor("#008300"));
+		backgroundBrush_ = QBrush(QColor("#7ccbcc"));
+		objectBrush_ = QBrush(QColor("#b439b3"));
+		fadedObjectBrush_ = QBrush(QColor("#d48ed2"));
+		transparentBrush_ = QBrush(QColor(0, 0, 0, 0));
 	}
 
 	QSize EnvCanvas::minimumSizeHint() const {
@@ -166,21 +191,38 @@ namespace aera_visualizer {
 		QPainter painter(this);
 		painter.setRenderHint(QPainter::Antialiasing, true);
 
-		int groundHeight = round(height() * 0.75);
-		painter.fillRect(QRect(0, 0, width(), groundHeight), palette().base()); // Sky
-		painter.fillRect(QRect(0, groundHeight, width(), round(height() * 0.25)), palette().alternateBase()); // Ground
+		// Draw the background
+		painter.fillRect(QRect(0, 0, width(), height()), palette().base());
 
-		// Draw the ball
-		int ballDiameter = min(round(width() * 0.15), round(height() * 0.15));
-		int x = round((positionY_ / 100) * width());
-		int y = groundHeight - ballDiameter;
+		if (identifier_ == "ball"){
+			// Draw the ground
+			int groundHeight = round(height() * 0.75);
+			painter.fillRect(QRect(0, 0, width(), groundHeight), backgroundBrush_); // Sky
+			painter.fillRect(QRect(0, groundHeight, width(), round(height() * 0.25)), foregroundBrush_); // Ground
 
-		QRect ballRect(x, y, ballDiameter, ballDiameter);
-		//painter.setBrush(palette().text());
-		painter.drawEllipse(ballRect);
-		//painter.brush)
+			// Compute the position and size of the ball
+			int ballDiameter = min(round(width() * 0.15), round(height() * 0.15));
+			int x = round((positionY_ / 80) * (width() - ballDiameter));
+			int y = groundHeight - ballDiameter;
+			QRect ballRect(x, y, ballDiameter, ballDiameter);
+
+			// Draw the ball
+			painter.setBrush(objectBrush_);
+			painter.drawEllipse(ballRect);			
+		}
+		else if (identifier_ == "cart-pole") {
+			// Show not implemented
+		}
+		else if (identifier_ != "") {
+			// Show not supported
+		}
+		else {
+			// Show not loaded
+		}
 
 		// Draw the border
+		painter.setBrush(transparentBrush_);
 		painter.drawRect(QRect(0, 0, width(), height()));
+		
 	}
 }
