@@ -1927,8 +1927,8 @@ void AeraVisualizerWindow::loadNewSeed()
   // Send this to the text output so it can read in the outputs
   textOutputView_->setOutputFilepaths(settings.decompilation_file_path_, settings.runtime_output_file_path_);
 
-  // Update internal environment view with Mem so it can display test stats
-  internalEnvView_->setMem(aera_->getMem());
+  // Update internal environment view with a link to AERA so it can access TestMem
+  internalEnvView_->setAERA(aera_);
 
   // This version isn't resettable just yet
   newInstanceAction_->setEnabled(false);

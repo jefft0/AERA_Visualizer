@@ -123,16 +123,16 @@ namespace aera_visualizer {
 		setWidget(container);
 	}
 
-	void InternalEnvView::setMem(TestMem<r_exec::LObject, r_exec::MemStatic>* mem) {
+	void InternalEnvView::setAERA(AERA_interface* aera) {
 		// Get the updated information
-		mem_ = mem;
+		aera_ = aera;
 
 		// Refresh the drawing and data output
 		refresh();
 	}
 
 	void InternalEnvView::refresh() {
-		identifier_ = mem_->getIdentifier();
+		identifier_ = aera_->getMem()->getIdentifier();
 
 		// Use identifier_ to decide what to show
 		if (identifier_ == "ball") {
@@ -140,9 +140,9 @@ namespace aera_visualizer {
 			identifierLabel_->setText("BALL");
 
 			// Get new values from mem_
-			positionY_ = mem_->getPositionY();
-			velocityY_ = mem_->getVelocityY();
-			forceY_ = mem_->getForceY();
+			positionY_ = aera_->getMem()->getPositionY();
+			velocityY_ = aera_->getMem()->getVelocityY();
+			forceY_ = aera_->getMem()->getForceY();
 
 			// Update the labels
 			firstDataLabel_->setText("Position: " + QString::fromStdString(std::to_string(positionY_)));

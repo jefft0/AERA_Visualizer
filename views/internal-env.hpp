@@ -142,12 +142,12 @@ public:
 	}
 
 	// Provide a link to test_mem. Make sure we have settings->get_objects_ set
-	void setMem(TestMem<r_exec::LObject, r_exec::MemStatic>* mem);
+	void setAERA(AERA_interface* aera);
 
 private:
 	ReplicodeObjects* replicodeObjects_;
 	EnvCanvas* canvas_;
-	TestMem<r_exec::LObject, r_exec::MemStatic>* mem_;
+	AERA_interface* aera_;
 
 	string identifier_;
 	float positionY_;
