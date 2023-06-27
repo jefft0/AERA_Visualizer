@@ -62,10 +62,6 @@
 
 /* To Do
 * - Need display for when nothing's loaded in (supported programs, logo, etc.)
-* - Faded balls for past histories (have notes with times attached)
-* - Ball going past max time should be detected and start sidescrolling
-* - Live update with AERA step functions
-* - Function call to swap to darkmode brushes
 */
 
 using namespace std;
@@ -178,11 +174,11 @@ namespace aera_visualizer {
 	}
 
 	QSize EnvCanvas::minimumSizeHint() const {
-		return QSize(100, 100);
+		return QSize(75, 100);
 	}
 
 	QSize EnvCanvas::sizeHint() const {
-		return QSize(400, 400);
+		return QSize(300, 400);
 	}
 
 	void EnvCanvas::drawTimestamp(QPainter &painter) {
@@ -202,15 +198,22 @@ namespace aera_visualizer {
 	}
 
 	void EnvCanvas::drawHticks(int y, float min, float max, float interval, QPainter& painter) {
-		int majorTickHeight = round(height() * 0.05 + painter.fontMetrics().height());
+		float scaleFactor = width() / (max - min);							// One pixel is this many units
+		float subdividedInterval = interval / (int)scaleFactor; // If there's room, subdivide the interval
+
+		// Adjust the font size if necessary
+		int labelWidth = painter.fontMetrics().width("000.0");								// Estimate label width
+		float fontScaleFactor = (interval * scaleFactor * 0.9) / labelWidth;	// What's that relative to the intervals?
+		if (fontScaleFactor < 1) {
+			QFont scaledFont = painter.font();
+			scaledFont.setPointSizeF(scaledFont.pointSizeF() * fontScaleFactor);
+			painter.setFont(scaledFont);
+		}
+
+		// Calculate the tick sizes
 		int minorTickHeight = round(height() * 0.02);
-	
-		// One pixel is this many units
-		float scaleFactor = width() / (max - min);
-
-		// If there's room, subdivide the interval
-		float subdividedInterval = interval / (int)scaleFactor;
-
+		int majorTickHeight = minorTickHeight + painter.fontMetrics().height();
+		
 		for (float i = min; i <= max; i += interval) {
 			// Draw minor ticks
 			for (float j = i; j < i + interval; j += subdividedInterval) {
@@ -225,7 +228,7 @@ namespace aera_visualizer {
 			// Draw the tick label
 			QString tick;
 			painter.drawText(
-				x + round(width() * 0.01), y + painter.fontMetrics().height(),
+				x + round(width() * 0.01), y + minorTickHeight + painter.fontMetrics().height(),
 				tick.sprintf("%.1f", i)
 			);			
 		}
