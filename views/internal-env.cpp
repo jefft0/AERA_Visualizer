@@ -256,7 +256,15 @@ namespace aera_visualizer {
 
 			// Draw the ball
 			painter.setBrush(objectBrush_);
-			painter.drawEllipse(ballRect);			
+			painter.drawEllipse(ballRect);
+
+			// Draw a velocity needle on the ball
+			y += round(ballDiameter / 2);
+			int length = round((width() * 0.2) * (velocityY_ / 0.001));
+
+			// Draw line
+			painter.setPen(QPen(Qt::red));
+			painter.drawLine(x, y, x + length, y);
 		}
 		else if (identifier_ == "cart-pole") {
 			// Show not implemented
