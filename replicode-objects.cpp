@@ -335,6 +335,11 @@ string ReplicodeObjects::init(AERA_interface* aera, microseconds basePeriod, QPr
 
   int i = 0;
   unordered_map<const Class*, uint16> objectIdPerClass;
+  // Initialize objectIdPerClass.
+  for (size_t j = 0; j < metadata.classes_by_opcodes_.size(); ++j) {
+    if (metadata.classes_by_opcodes_[j].str_opcode != "undefined")
+      objectIdPerClass[&metadata.classes_by_opcodes_[j]] = 0;
+  }
   r_code::list<P<r_code::Code> >::const_iterator o;
   for (o = objects_->begin(); o != objects_->end(); ++o) {
     i++;
@@ -402,20 +407,20 @@ string ReplicodeObjects::init(AERA_interface* aera, microseconds basePeriod, QPr
   Decompiler decompiler;
   decompiler.init(&metadata);
 
-  // Copy labels into objectNames for the decopiler
-  /*i = 0;
+  // Fill the objectNames map from objectLabel_ and use it in decompile_references.
   unordered_map<uint16, std::string> objectNames;
-  for (auto o = objects_->begin(); o != objects_->end(); ++o) {
+  for (auto i = 0; i < packedImage.code_segment_.objects_.size(); ++i) {
     if (progress.wasCanceled())
       return "cancel";
-    progress.setValue(objects_->size() + i);
+    progress.setValue(objectLabel_.size() + i);
     if (i % 100 == 0)
       QApplication::processEvents();
 
-    objectNames[i] = objectLabel_[*o];
-    i++;
-  }*/
-  decompiler.decompile_references(&packedImage);// , & objectNames);
+    auto object = getObjectByDetailOid(packedImage.code_segment_.objects_[i]->detail_oid_);
+    if (object)
+      objectNames[i] = objectLabel_[object];
+  }
+  decompiler.decompile_references(&packedImage, &objectNames);
 
   for (uint16 i = 0; i < packedImage.code_segment_.objects_.size(); ++i) {
     if (progress.wasCanceled())
@@ -605,9 +610,10 @@ Code* ReplicodeObjects::getObject(uint32 oid) const
 
 Code* ReplicodeObjects::getObjectByDetailOid(uint64 detailOid) const
 {
-  for (auto o = objects_->begin(); o != objects_->end(); ++o) {
-    if ((*o)->get_detail_oid() == detailOid)
-      return *o;
+  // Use objectLabel_ because objects_ only has the "top" injected objects with an OID.
+  for (auto o = objectLabel_.begin(); o != objectLabel_.end(); ++o) {
+    if (o->first->get_detail_oid() == detailOid)
+      return o->first;
   }
 
   return NULL;
