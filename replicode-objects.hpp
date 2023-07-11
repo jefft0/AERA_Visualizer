@@ -216,6 +216,13 @@ public:
 
 private:
   /**
+   * Create a unique label for object and assign objectLabel_ and labelObject_ . Recursively call this for
+   * referenced objects. If the object is already in objectLabel_, then do nothing. This updates objectIdPerClass.
+   */
+  void assignLabel(r_code::Code* object, std::unordered_map<const r_comp::Class*, uint16>& objectIdPerClass,
+    const r_comp::Metadata& metadata, const std::unordered_map<uint32, std::string>& seedNames);
+
+  /**
    * Process the decompiled objects file to remove OIDs, detail OIDs and info lines starting with ">".
    * This sets timeReference_ from the header info line. This gets the object's source code, which is
    * stripped of the label and view set.

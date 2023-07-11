@@ -333,10 +333,8 @@ string ReplicodeObjects::init(AERA_interface* aera, microseconds basePeriod, QPr
   // Use these names where available
   std::unordered_map<uint32, std::string> seedNames = aera->getSeedNames().symbols_;
 
-  // Some objects don't have an OID so just assign them a sequential one
-  int anonOID = 0;
-
   int i = 0;
+  unordered_map<const Class*, uint16> objectIdPerClass;
   r_code::list<P<r_code::Code> >::const_iterator o;
   for (o = objects_->begin(); o != objects_->end(); ++o) {
     i++;
@@ -347,34 +345,7 @@ string ReplicodeObjects::init(AERA_interface* aera, microseconds basePeriod, QPr
     if (i % 100 == 0)
       QApplication::processEvents();
 
-    Code* object = *o;
-    int oid = object->get_oid();
-    int dOID = object->get_detail_oid();
-    //auto ref = object->get_reference(0); // This crashes
-    string label;
-
-    // If a name already exists, use it
-    if (seedNames.find(oid) != seedNames.end())
-      label = seedNames[oid];
-
-    // If not, assign it as CLASS_OID or similar
-    else {
-      // Retrieve prefix from opcode
-      string prefix = metadata.classes_by_opcodes_[object->code(0).asOpcode()].str_opcode;
-
-      // Some objects don't have OIDs so assign one
-      if (oid == -1) {
-        label = prefix + std::to_string(anonOID);
-        (*o)->set_oid(anonOID);
-        anonOID++;
-      }
-      else
-        label = prefix + "_" + std::to_string(oid);
-    }
-   
-    // Save to objectLabel and labelObject
-    objectLabel_[object] = label;
-    labelObject_[label] = object;
+    assignLabel(*o, objectIdPerClass, metadata, seedNames);
   }
 
   // Transfer imageObjects to objects_, unpacking and processing as needed.
@@ -470,6 +441,83 @@ string ReplicodeObjects::init(AERA_interface* aera, microseconds basePeriod, QPr
   initialized_ = true;
   
   return "";
+}
+
+// Get a string for the value such as "a", "b" ... "z", "aa", "ab" ....
+static std::string makeSuffix(uint32 value) {
+  string result;
+  do {
+    // Get the lowest digit as base 26 and prepend a char from 'a' to 'z'.
+    uint32 lowest = value % 26;
+    result = (char)('a' + lowest) + result;
+
+    // Shift.
+    value /= 26;
+  } while (value != 0);
+
+  return result;
+}
+
+void ReplicodeObjects::assignLabel(
+  Code* object, unordered_map<const Class*, uint16>& objectIdPerClass,
+  const r_comp::Metadata& metadata, const std::unordered_map<uint32, std::string>& seedNames)
+{
+  if (objectLabel_.find(object) != objectLabel_.end())
+    // Already processed.
+    return;
+
+  uint32 oid = object->get_oid();
+  string label;
+
+  // If a name already exists, use it
+  if (seedNames.find(oid) != seedNames.end())
+    label = seedNames.at(oid);
+
+  // If not, assign it as CLASS_OID or similar
+  else {
+    // Imitate Decompiler::decompile_references.
+    // https://github.com/IIIM-IS/AERA/blob/df783dc59f4e5344dcfeb219f7239e4079bbd65d/r_comp/decompiler.cpp#L268-L306
+    // Retrieve prefix from opcode
+    const Class* c = &metadata.classes_by_opcodes_[object->code(0).asOpcode()];
+    string className = c->str_opcode;
+
+    // A class name like mk.val has a dot, but this isn't allowed as an identifier.
+    replace(className.begin(), className.end(), '.', '_');
+    // A class name like |fact has a bar, but this isn't allowed as an identifier.
+    // (Use regex_replace because it can handle multi-character strings.)
+    regex verticalBarRegex("\\|");
+    className = regex_replace(className, verticalBarRegex, "anti_");
+
+    if (object->get_oid() != UNDEFINED_OID)
+      // Use the object's OID.
+      label = className + "_" + std::to_string(oid);
+    else {
+      // Create a name with a unique ID.
+      uint16 last_object_ID = objectIdPerClass[c];
+      objectIdPerClass[c] = last_object_ID + 1;
+      label = className + std::to_string(last_object_ID);
+    }
+
+    if (labelObject_.find(label) != labelObject_.end()) {
+      // The created name matches an existing name. Keep trying an added
+      // suffix until it is unique.
+      for (uint32 value = 1; true; ++value) {
+        std::string new_label = label + makeSuffix(value);
+        if (labelObject_.find(new_label) == labelObject_.end()) {
+          label = new_label;
+          break;
+        }
+      }
+    }
+  }
+
+  // Save to objectLabel and labelObject
+  objectLabel_[object] = label;
+  labelObject_[label] = object;
+
+  // Recursively label the referenced objects.
+  for (int i = 0; i < object->references_size(); ++i)
+    assignLabel(object->get_reference(i), objectIdPerClass, metadata, seedNames);
 }
 
 
